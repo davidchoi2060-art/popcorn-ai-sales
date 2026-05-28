@@ -1,0 +1,17 @@
+node_modules/
+__pycache__/
+.venv/
+venv/
+.next/
+dist/
+build/
+.env
+.env.local
+.vscode/
+.idea/
+*.log
+coverage/
+.pytest_cache/
+pg_data/
+.DS_Store
+Thumbs.db

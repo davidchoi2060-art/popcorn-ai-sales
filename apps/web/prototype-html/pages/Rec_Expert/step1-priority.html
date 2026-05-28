@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PC-AI Builder - Advanced Mode Step 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e6e8eb",
+                        "background": "#f7f9fc",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#0075d5",
+                        "on-tertiary-fixed-variant": "#5e08bd",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fefcff",
+                        "on-surface-variant": "#404753",
+                        "surface-container": "#eceef1",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#191c1e",
+                        "secondary": "#415c9d",
+                        "surface-dark": "#222F3E",
+                        "surface-container-low": "#f2f4f7",
+                        "on-tertiary-fixed": "#270057",
+                        "tertiary": "#7431d3",
+                        "surface-variant": "#e0e3e6",
+                        "on-secondary-container": "#2a4786",
+                        "error-red": "#D32F2F",
+                        "secondary-fixed": "#dae2ff",
+                        "tertiary-container": "#8e4fee",
+                        "on-primary-fixed": "#001c3a",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2d3133",
+                        "outline-variant": "#c0c7d6",
+                        "tooltip-bg": "#222F3E",
+                        "tertiary-fixed-dim": "#d5baff",
+                        "on-primary-fixed-variant": "#004785",
+                        "border-low-contrast": "#E5E7EB",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-tertiary-container": "#fffbff",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "secondary-container": "#9db7fe",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "primary": "#005daa",
+                        "surface-bright": "#f7f9fc",
+                        "on-primary": "#ffffff",
+                        "surface": "#f7f9fc",
+                        "on-secondary-fixed-variant": "#274483",
+                        "secondary-fixed-dim": "#b1c5ff",
+                        "surface-container-highest": "#e0e3e6",
+                        "success-green": "#388E3C",
+                        "focus-outline": "#0055FF",
+                        "tertiary-fixed": "#ecdcff",
+                        "surface-dim": "#d8dadd",
+                        "on-secondary-fixed": "#001946",
+                        "inverse-primary": "#a5c8ff",
+                        "surface-tint": "#005fae",
+                        "outline": "#707785",
+                        "on-surface": "#191c1e",
+                        "surface-main": "#FFFFFF",
+                        "primary-fixed": "#d4e3ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "toolbar-height": "40px",
+                        "status-bar-height": "32px",
+                        "dialog-padding": "24px",
+                        "unit": "4px",
+                        "margin-md": "16px",
+                        "gutter": "16px",
+                        "margin-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "noto": ["Noto Sans KR", "sans-serif"],
+                        "code-md": ["jetbrainsMono"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code-md": ["13px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest border-b border-outline-variant docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-md md:px-dialog-padding max-w-7xl mx-auto h-toolbar-height py-8">
+<div class="flex items-center gap-8">
+<span class="text-headline-sm font-headline-lg text-primary">PC-AI Builder</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-lg text-body-lg" href="#">AI 추천</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg" href="#">부품 정보</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg" href="#">커뮤니티</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg" href="#">이벤트</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow max-w-7xl mx-auto w-full px-margin-md md:px-dialog-padding py-8">
+<!-- Header Utility Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+<!-- Mode Toggle -->
+<div class="flex bg-surface-container rounded-full p-1 w-fit">
+<button class="px-6 py-2 rounded-full text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high transition-all">초보자 모드</button>
+<button class="px-6 py-2 rounded-full text-label-md font-label-md bg-primary text-on-primary shadow-sm">고급자 모드</button>
+</div>
+<!-- Step Bar -->
+<div class="flex items-center gap-4 font-noto">
+<div class="flex items-center gap-2">
+<span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm">1</span>
+<span class="text-primary font-bold">용도</span>
+</div>
+<div class="w-8 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-2 opacity-50">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm">2</span>
+<span>예산</span>
+</div>
+<div class="w-8 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-2 opacity-50">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm">3</span>
+<span>부품</span>
+</div>
+<div class="w-8 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-2 opacity-50">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm">4</span>
+<span>조건</span>
+</div>
+<div class="w-8 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-2 opacity-50">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm">5</span>
+<span>확인</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row gap-10">
+<!-- Left Content Area (Main) -->
+<section class="flex-1 max-w-[800px]">
+<div class="mb-8">
+<h1 class="font-headline-md text-headline-md text-on-background mb-2 font-noto">STEP 1. 사용 목적과 우선순위</h1>
+<div class="flex items-start gap-2 text-on-surface-variant bg-secondary-container/10 p-4 rounded-xl border border-secondary-container/20">
+<span class="material-symbols-outlined text-primary scale-90">lightbulb</span>
+<p class="text-body-md font-noto leading-relaxed">
+                            여러 용도를 동시에 사용하신다면, 우선순위를 명확히 지정해주세요. <br/>
+                            AI가 가중치를 적용해 균형 잡힌 구성을 추천합니다.
+                        </p>
+</div>
+</div>
+<!-- Usage Selection Cards -->
+<div class="mb-12">
+<h2 class="font-headline-sm text-headline-sm mb-4 font-noto">사용 목적 선택</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+<!-- Selected Cards -->
+<div class="relative p-5 rounded-xl border-2 border-primary bg-primary-container/5 cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-primary" data-weight="fill">sports_esports</span>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div>
+<p class="font-bold font-noto">게임</p>
+<p class="text-xs text-on-surface-variant font-noto">QHD 144Hz 환경</p>
+</div>
+</div>
+<div class="relative p-5 rounded-xl border-2 border-primary bg-primary-container/5 cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-primary" data-weight="fill">movie_edit</span>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div>
+<p class="font-bold font-noto">영상편집</p>
+<p class="text-xs text-on-surface-variant font-noto">프리미어+다빈치 동시 작업</p>
+</div>
+</div>
+<div class="relative p-5 rounded-xl border-2 border-primary bg-primary-container/5 cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-primary" data-weight="fill">podcasts</span>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div>
+<p class="font-bold font-noto">방송</p>
+<p class="text-xs text-on-surface-variant font-noto">송출 및 원컴 방송</p>
+</div>
+</div>
+<!-- Unselected Cards -->
+<div class="p-5 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-on-surface-variant">psychology</span>
+<div class="w-5 h-5 rounded-full border border-outline-variant"></div>
+</div>
+<div>
+<p class="font-bold font-noto">AI 실습</p>
+<p class="text-xs text-on-surface-variant font-noto">딥러닝, 로컬 LLM 구동</p>
+</div>
+</div>
+<div class="p-5 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-on-surface-variant">layers</span>
+<div class="w-5 h-5 rounded-full border border-outline-variant"></div>
+</div>
+<div>
+<p class="font-bold font-noto">3D 작업</p>
+<p class="text-xs text-on-surface-variant font-noto">Blender, Unreal Engine</p>
+</div>
+</div>
+<div class="p-5 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-on-surface-variant">work</span>
+<div class="w-5 h-5 rounded-full border border-outline-variant"></div>
+</div>
+<div>
+<p class="font-bold font-noto">업무용</p>
+<p class="text-xs text-on-surface-variant font-noto">대용량 엑셀, 멀티태스킹</p>
+</div>
+</div>
+<div class="p-5 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-on-surface-variant">terminal</span>
+<div class="w-5 h-5 rounded-full border border-outline-variant"></div>
+</div>
+<div>
+<p class="font-bold font-noto">개발</p>
+<p class="text-xs text-on-surface-variant font-noto">컴파일 속도, 가상 머신</p>
+</div>
+</div>
+<div class="p-5 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer flex flex-col gap-2">
+<div class="flex justify-between">
+<span class="material-symbols-outlined text-on-surface-variant">show_chart</span>
+<div class="w-5 h-5 rounded-full border border-outline-variant"></div>
+</div>
+<div>
+<p class="font-bold font-noto">주식/멀티모니터</p>
+<p class="text-xs text-on-surface-variant font-noto">다중 차트, 안정성</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Priority Section -->
+<div>
+<h2 class="font-headline-sm text-headline-sm mb-4 font-noto">우선순위 지정 (선택한 용도만)</h2>
+<div class="space-y-4 max-w-md">
+<div class="flex items-center gap-4">
+<span class="w-24 text-body-md font-bold text-on-surface-variant font-noto">1순위</span>
+<div class="flex-grow relative">
+<select class="w-full h-12 bg-surface-container-lowest border border-outline-variant rounded-xl px-4 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-noto">
+<option selected="">게임</option>
+<option>영상편집</option>
+<option>방송</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="w-24 text-body-md font-bold text-on-surface-variant font-noto">2순위</span>
+<div class="flex-grow relative">
+<select class="w-full h-12 bg-surface-container-lowest border border-outline-variant rounded-xl px-4 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-noto">
+<option>게임</option>
+<option selected="">영상편집</option>
+<option>방송</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="w-24 text-body-md font-bold text-on-surface-variant font-noto">3순위</span>
+<div class="flex-grow relative">
+<select class="w-full h-12 bg-surface-container-lowest border border-outline-variant rounded-xl px-4 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-noto">
+<option>게임</option>
+<option>영상편집</option>
+<option selected="">방송</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+</div>
+<button class="flex items-center gap-2 text-primary font-bold px-4 py-2 hover:bg-primary/5 rounded-lg transition-colors font-noto">
+<span class="material-symbols-outlined">add</span>
+                            우선순위 추가
+                        </button>
+</div>
+</div>
+</section>
+<!-- Right Panel (AI Assistant) -->
+<aside class="w-full lg:w-[320px] sticky top-24 self-start">
+<div class="bg-surface-container-low rounded-2xl p-6 border border-outline-variant shadow-sm overflow-hidden relative">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" data-weight="fill">chat_bubble</span>
+<h3 class="font-headline-sm text-on-surface font-noto">AI에게 이렇게 요청할게요</h3>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 mb-4 border border-outline-variant">
+<p class="text-body-md font-noto text-on-surface leading-relaxed whitespace-pre-wrap">안녕하세요! 사용 목적과 예산에 맞는 조립PC 구성을 찾고 있습니다.
+
+주 용도는 게임, 영상편집, 방송이며, 가장 중요한 목적은 게임입니다. 그 다음으로 영상편집과 방송 환경을 함께 고려하고 싶습니다.</p>
+</div>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-1.5 text-xs font-bold text-success-green">
+<span class="w-2 h-2 rounded-full bg-success-green"></span>
+                            자동 생성됨
+                        </div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-all text-on-surface-variant" title="복사">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-all text-on-surface-variant" title="초기화">
+<span class="material-symbols-outlined text-sm">refresh</span>
+</button>
+</div>
+</div>
+<div class="h-32 w-full rounded-xl overflow-hidden relative group">
+<img class="w-full h-full object-cover grayscale opacity-30" data-alt="A clean, cinematic top-down view of a modern workstation desk with professional PC building components laid out in a neat grid. The lighting is soft and neutral, typical of a high-end corporate office setting. The palette features subtle whites and muted grays with one striking blue highlight from a motherboard LED. The overall mood is focused, technological, and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBchxxhOybrv1GTqnvwtCjHIX3h7bSzZ11LxkrzN82UCtu5z0d2NALxJ356hxc2JKelxF931eRMAu7BmehR-LPHJHhPdkqW5auf-WA2ZRv1UCwVHJJIijR8CFKEJWqIaKAOg26E7pE7Rgr_WyiFzvzPJqQa2-q_lzGLY7yZetIEFwCxQWPqG9clMOLwxsXdgycCEWuSc2CR8zOKLS-UDMQabI7fljDE8Lod0HVyG5D2cZ8z-SbgearUeoLU-aJMM_VmmXNahBWJcV0Z"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant mt-12 docked full-width bottom-0">
+<div class="max-w-7xl mx-auto w-full px-margin-md md:px-dialog-padding py-6 flex justify-between items-center">
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl text-on-surface-variant opacity-40 cursor-not-allowed font-bold font-noto">
+<span class="material-symbols-outlined">arrow_back</span>
+                이전
+            </button>
+<button class="flex items-center gap-2 px-10 py-3 rounded-xl bg-primary text-on-primary hover:bg-primary-container shadow-lg transition-all active:scale-95 font-bold font-noto">
+                다음: 예산 설정
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Corporate Footer Info -->
+<div class="bg-surface-dim py-12 px-margin-md md:px-dialog-padding border-t border-outline-variant">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+<div class="space-y-4">
+<span class="font-headline-sm text-on-surface">PC-AI Builder</span>
+<p class="text-on-surface-variant text-body-md font-noto">스마트한 조립 PC 가이드. 당신의 목적에 가장 완벽한 구성을 AI가 추천합니다.</p>
+<p class="text-on-surface-variant text-label-md">© 2024 PC-AI Builder. All rights reserved.</p>
+</div>
+<div class="flex flex-wrap gap-6 font-noto">
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">이용약관</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">개인정보처리방침</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">고객센터</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">기업구매문의</a>
+</div>
+</div>
+</div>
+</body></html>
