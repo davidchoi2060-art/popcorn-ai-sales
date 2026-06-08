@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팝콘 AI - 스마트한 조립 PC 추천 서비스</title>
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-gray-200);
+            box-shadow: var(--shadow-sm);
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacer-3) var(--spacer-6);
+            gap: var(--spacer-4);
+        }
+
+        .logo {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: var(--spacer-2);
+        }
+
+        .nav-links {
+            display: none;
+            gap: var(--spacer-6);
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--color-gray-700);
+            text-decoration: none;
+            font-weight: var(--font-weight-medium);
+            transition: var(--transition-base);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-primary);
+        }
+
+        .nav-links a.active {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--color-primary);
+        }
+
+        @media (min-width: 992px) {
+            .nav-links {
+                display: flex;
+            }
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: var(--spacer-3);
+            align-items: center;
+        }
+
+        .search-box {
+            display: none;
+            position: relative;
+        }
+
+        @media (min-width: 1200px) {
+            .search-box {
+                display: block;
+            }
+        }
+
+        .search-box input {
+            padding: var(--spacer-2) var(--spacer-3) var(--spacer-2) var(--spacer-4);
+            border: 1px solid var(--color-gray-300);
+            border-radius: var(--border-radius-pill);
+            background: var(--color-gray-50);
+            width: 250px;
+            font-size: var(--font-size-sm);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: var(--spacer-2);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-gray-500);
+            pointer-events: none;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: var(--spacer-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-gray-700);
+            transition: var(--transition-base);
+            border-radius: var(--border-radius-base);
+        }
+
+        .icon-btn:hover {
+            background: var(--color-gray-100);
+            color: var(--color-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #764ba2 100%);
+            color: var(--color-white);
+            padding: var(--spacer-12) var(--spacer-6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50% 0 0 50%;
+        }
+
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacer-8);
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (min-width: 992px) {
+            .hero-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .hero-content h1 {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bolder);
+            margin-bottom: var(--spacer-4);
+            line-height: 1.2;
+        }
+
+        @media (min-width: 768px) {
+            .hero-content h1 {
+                font-size: var(--font-size-5xl);
+            }
+        }
+
+        .hero-highlight {
+            color: #ffd700;
+        }
+
+        .hero-content p {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacer-6);
+            opacity: 0.95;
+            line-height: var(--line-height-lg);
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacer-3);
+        }
+
+        @media (min-width: 576px) {
+            .hero-buttons {
+                flex-direction: row;
+            }
+        }
+
+        .btn-primary-lg {
+            background: var(--color-white);
+            color: var(--color-primary);
+            padding: var(--spacer-3) var(--spacer-6);
+            border-radius: var(--border-radius-lg);
+            font-weight: var(--font-weight-bold);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacer-2);
+            transition: var(--transition-base);
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-base);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary-lg:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-secondary-lg {
+            background: transparent;
+            color: var(--color-white);
+            padding: var(--spacer-3) var(--spacer-6);
+            border: 2px solid var(--color-white);
+            border-radius: var(--border-radius-lg);
+            font-weight: var(--font-weight-bold);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacer-2);
+            transition: var(--transition-base);
+            cursor: pointer;
+            font-size: var(--font-size-base);
+        }
+
+        .btn-secondary-lg:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-image {
+            display: none;
+        }
+
+        @media (min-width: 992px) {
+            .hero-image {
+                display: block;
+                position: relative;
+                height: 400px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: var(--border-radius-2xl);
+                overflow: hidden;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .hero-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: var(--border-radius-2xl);
+            }
+        }
+
+        /* Category Section */
+        .categories {
+            padding: var(--spacer-12) var(--spacer-6);
+            background: var(--color-white);
+        }
+
+        .categories-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            text-align: center;
+            margin-bottom: var(--spacer-10);
+            color: var(--color-gray-900);
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacer-6);
+        }
+
+        @media (min-width: 768px) {
+            .category-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .category-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        .category-card {
+            background: var(--color-white);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacer-6);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-base);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacer-3);
+        }
+
+        .category-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--border-radius-lg);
+            background: var(--color-gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: var(--transition-base);
+        }
+
+        .category-card:hover .category-icon {
+            background: var(--color-primary-lightest);
+        }
+
+        .category-name {
+            font-weight: var(--font-weight-bold);
+            color: var(--color-gray-900);
+            font-size: var(--font-size-base);
+        }
+
+        .category-desc {
+            font-size: var(--font-size-sm);
+            color: var(--color-gray-600);
+        }
+
+        /* Personalized Section */
+        .personalized {
+            padding: var(--spacer-12) var(--spacer-6);
+            background: var(--color-gray-50);
+        }
+
+        .personalized-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .personalized-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacer-6);
+        }
+
+        @media (min-width: 768px) {
+            .personalized-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .personalized-card {
+            padding: var(--spacer-6);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--color-gray-200);
+            background: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacer-4);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .personalized-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateX(4px);
+        }
+
+        .personalized-card.primary {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .personalized-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .personalized-card .personalized-icon {
+            background: var(--color-gray-100);
+        }
+
+        .personalized-card.primary .personalized-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .personalized-content h3 {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacer-1);
+        }
+
+        .personalized-content p {
+            font-size: var(--font-size-sm);
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        /* Popular Recommendations */
+        .popular {
+            padding: var(--spacer-12) var(--spacer-6);
+            background: var(--color-white);
+        }
+
+        .popular-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: var(--spacer-8);
+            gap: var(--spacer-4);
+        }
+
+        .section-header-content h2 {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacer-2);
+        }
+
+        .section-header-content p {
+            color: var(--color-gray-600);
+            margin: 0;
+        }
+
+        .view-all {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: var(--font-weight-semibold);
+            display: flex;
+            align-items: center;
+            gap: var(--spacer-1);
+            transition: var(--transition-base);
+        }
+
+        .view-all:hover {
+            gap: var(--spacer-2);
+        }
+
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacer-6);
+        }
+
+        @media (min-width: 768px) {
+            .recommendation-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .recommendation-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .recommendation-card {
+            background: var(--color-white);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            transition: var(--transition-base);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .recommendation-card:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+        }
+
+        .recommendation-image {
+            width: 100%;
+            height: 200px;
+            background: var(--color-gray-100);
+            overflow: hidden;
+        }
+
+        .recommendation-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition-base);
+        }
+
+        .recommendation-card:hover .recommendation-image img {
+            transform: scale(1.05);
+        }
+
+        .recommendation-content {
+            padding: var(--spacer-5);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .recommendation-badge {
+            display: inline-block;
+            width: fit-content;
+            padding: var(--spacer-0-5) var(--spacer-2);
+            border-radius: var(--border-radius-pill);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacer-3);
+        }
+
+        .badge-trending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-choice {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .badge-steady {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .recommendation-price {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+            margin-bottom: var(--spacer-2);
+        }
+
+        .recommendation-title {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacer-3);
+            line-height: var(--line-height-base);
+        }
+
+        .recommendation-specs {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 var(--spacer-4) 0;
+            flex-grow: 1;
+        }
+
+        .recommendation-specs li {
+            display: flex;
+            align-items: center;
+            gap: var(--spacer-2);
+            padding: var(--spacer-1) 0;
+            font-size: var(--font-size-sm);
+            color: var(--color-gray-700);
+        }
+
+        .recommendation-specs .material-symbols-outlined {
+            font-size: 1.2rem;
+            color: var(--color-gray-500);
+        }
+
+        .recommendation-btn {
+            width: 100%;
+            padding: var(--spacer-3);
+            border: 1px solid var(--color-primary);
+            background: var(--color-white);
+            color: var(--color-primary);
+            border-radius: var(--border-radius-base);
+            font-weight: var(--font-weight-bold);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .recommendation-btn:hover {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        /* Event Banner */
+        .event {
+            padding: var(--spacer-12) var(--spacer-6);
+            background: var(--color-gray-900);
+            color: var(--color-white);
+            margin-bottom: var(--spacer-12);
+        }
+
+        .event-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacer-8);
+            align-items: center;
+        }
+
+        @media (min-width: 992px) {
+            .event-container {
+                grid-template-columns: 1fr 300px;
+            }
+        }
+
+        .event-label {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-sm);
+            display: inline-block;
+            margin-bottom: var(--spacer-2);
+        }
+
+        .event h2 {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bolder);
+            margin-bottom: var(--spacer-4);
+        }
+
+        .event p {
+            font-size: var(--font-size-lg);
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .event-btn {
+            background: var(--color-primary);
+            color: var(--color-white);
+            padding: var(--spacer-3) var(--spacer-6);
+            border-radius: var(--border-radius-lg);
+            font-weight: var(--font-weight-bold);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-size: var(--font-size-base);
+        }
+
+        .event-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--color-gray-100);
+            border-top: 1px solid var(--color-gray-300);
+            padding: var(--spacer-8) var(--spacer-6);
+        }
+
+        footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacer-6);
+            margin-bottom: var(--spacer-6);
+        }
+
+        .footer-section h4 {
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacer-3);
+            color: var(--color-gray-900);
+        }
+
+        .footer-section p {
+            font-size: var(--font-size-sm);
+            color: var(--color-gray-700);
+            margin: 0;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: var(--spacer-2);
+        }
+
+        .footer-links a {
+            color: var(--color-gray-700);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            transition: var(--transition-base);
+        }
+
+        .footer-links a:hover {
+            color: var(--color-primary);
+        }
+
+        .footer-divider {
+            border-top: 1px solid var(--color-gray-300);
+            padding-top: var(--spacer-4);
+            text-align: center;
+            color: var(--color-gray-700);
+            font-size: var(--font-size-sm);
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: var(--spacer-3);
+            margin-top: var(--spacer-3);
+        }
+
+        .footer-socials a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--border-radius-base);
+            background: var(--color-white);
+            color: var(--color-gray-700);
+            transition: var(--transition-base);
+        }
+
+        .footer-socials a:hover {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header/Navigation -->
+    <header>
+        <nav>
+            <a href="#" class="logo">
+                <span class="material-symbols-outlined">psychology</span>
+                팝콘 AI
+            </a>
+
+            <div class="nav-links">
+                <a href="#" class="active">AI 추천</a>
+                <a href="#">부품 정보</a>
+                <a href="#">커뮤니티</a>
+                <a href="#">이벤트</a>
+            </div>
+
+            <div class="search-box">
+                <input type="text" placeholder="부품이나 사양을 검색하세요">
+                <span class="search-icon material-symbols-outlined">search</span>
+            </div>
+
+            <div class="nav-actions">
+                <button class="icon-btn">
+                    <span class="material-symbols-outlined">shopping_cart</span>
+                </button>
+                <button class="icon-btn">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1>
+                        나에게 맞는<br>
+                        조립PC를<br>
+                        <span class="hero-highlight">AI가 추천해드려요</span>
+                    </h1>
+                    <p>
+                        복잡한 사양 공부 없이, 용도와 예산만으로 완벽한 견적을 완성하세요.
+                        수만 개의 실제 벤치마크 데이터를 기반으로 최적의 밸런스를 제안합니다.
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary-lg">
+                            <span class="material-symbols-outlined">psychology</span>
+                            AI 추천 시작하기
+                        </button>
+                        <button class="btn-secondary-lg">둘러보기</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe1F0JBfzvsvqyQqEQAmomvr1Diwjh41u4IxIfedeXVcfGmV7kulMfTyP_0WmVQIgHn8v0iS6tj9untlMvcBZOCYFtutwJofnzCs1KlA-WiwegYbqj7KSGizg_4kgS5GGyMiLt3WIX1mhXETd_-1Bs6fpwpjdKn1QAaFxjGanTtXznnSJxZyXrgLzl3OLGLFdOLonKq3sUK1sVzqytdQ2hd9mMp4FYodmb3cpUxBLGWH3_JHSWc7v1p50x3lhytXKqdJuUOwG47zhh" alt="고성능 조립PC">
+                </div>
+            </div>
+        </section>
+
+        <!-- Category Section -->
+        <section class="categories">
+            <div class="categories-container">
+                <h2 class="section-title">어떤 PC를 찾으시나요?</h2>
+                <div class="category-grid">
+                    <div class="category-card">
+                        <div class="category-icon">💼</div>
+                        <div class="category-name">업무용</div>
+                        <div class="category-desc">빠른 문서 작업</div>
+                    </div>
+                    <div class="category-card">
+                        <div class="category-icon">🎮</div>
+                        <div class="category-name">게임용</div>
+                        <div class="category-desc">최고 성능 게이밍</div>
+                    </div>
+                    <div class="category-card">
+                        <div class="category-icon">🎬</div>
+                        <div class="category-name">영상편집</div>
+                        <div class="category-desc">4K 고화질 렌더링</div>
+                    </div>
+                    <div class="category-card">
+                        <div class="category-icon">🎓</div>
+                        <div class="category-name">학습용</div>
+                        <div class="category-desc">인강 및 코딩 학습</div>
+                    </div>
+                    <div class="category-card">
+                        <div class="category-icon">📻</div>
+                        <div class="category-name">방송용</div>
+                        <div class="category-desc">원컴 실시간 송출</div>
+                    </div>
+                    <div class="category-card">
+                        <div class="category-icon">🎨</div>
+                        <div class="category-name">디자인</div>
+                        <div class="category-desc">전문 그래픽 작업</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Personalized Section -->
+        <section class="personalized">
+            <div class="personalized-container">
+                <div class="personalized-grid">
+                    <div class="personalized-card">
+                        <div style="display: flex; align-items: center; gap: var(--spacer-4); flex: 1;">
+                            <div class="personalized-icon">📁</div>
+                            <div class="personalized-content">
+                                <h3>이전에 저장한 견적이 3개 있어요</h3>
+                                <p>나의 보관함에서 확인하기</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined">arrow_forward_ios</span>
+                    </div>
+                    <div class="personalized-card primary">
+                        <div style="display: flex; align-items: center; gap: var(--spacer-4); flex: 1;">
+                            <div class="personalized-icon">⚡</div>
+                            <div class="personalized-content">
+                                <h3>내 PC 업그레이드 추천받기</h3>
+                                <p>현재 사양 기반 AI 제안</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined">bolt</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Recommendations -->
+        <section class="popular">
+            <div class="popular-container">
+                <div class="section-header">
+                    <div class="section-header-content">
+                        <h2>실시간 인기 견적 Top 3</h2>
+                        <p>지금 가장 많은 유저들이 선택한 조합입니다.</p>
+                    </div>
+                    <a href="#" class="view-all">
+                        전체 보기
+                        <span class="material-symbols-outlined">open_in_new</span>
+                    </a>
+                </div>
+
+                <div class="recommendation-grid">
+                    <!-- Item 1 -->
+                    <div class="recommendation-card">
+                        <div class="recommendation-image">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-MvHre8_SqKvnLPgUQYdcTUU41wzij0YscZblyNUoQGlHwWt5ZUlmgsR2uVwZoHUczvZ3apVoVzNwvnWGzCatYpe14blawPoAbrutlOJqDzCDuj6fCtxNNQJz2FaOmsw1Bz0zMlhSQM0V2rm3GwUTC5kODlxBWG4xOyKS5p2FiFPIzN3FdRKLzZgbzuNxyxXLswzSWJ_u4lafetOSQwI0hLbj4-RastzYQYVCTMBsMoxQzjlrn8khTp1fLbf0PrgLZNBIOij1H-PQ" alt="게이밍 PC">
+                        </div>
+                        <div class="recommendation-content">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacer-3);">
+                                <span class="recommendation-badge badge-trending">인기 급상승</span>
+                                <span class="recommendation-price">1,450,000원</span>
+                            </div>
+                            <h3 class="recommendation-title">RTX 4060 Ti 가성비 게이밍 조합</h3>
+                            <ul class="recommendation-specs">
+                                <li>
+                                    <span class="material-symbols-outlined">memory</span>
+                                    Ryzen 5 7500F
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined">developer_board</span>
+                                    B650M-PLUS
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined">videogame_asset</span>
+                                    GeForce RTX 4060 Ti
+                                </li>
+                            </ul>
+                            <button class="recommendation-btn">견적 상세보기</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="recommendation-card">
+                        <div class="recommendation-image">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCzKLE1BkomYjezKplhL4unqjhpaOWowqhjVmSB1g579HI7hzfrrUQJa-vIG4EzilgzVcUfO2TWX-G6paq0LHPszwNK3C94c8S8gmJO9ucyE9evR-nlklaN3Q2qtrSNgjtBaA_cMlzpby8xtT2EXOaRstOp3elWmgioMfdLoRSG7wEFxNhZmxwyhUMdcikyU7lptpKO47S4EOCjEJZFdWCUquUR4bMe7O8fHpkEV6UDvFH36GCow8mMdt7TPBeiZm25lX6gT9yzmiz" alt="워크스테이션">
+                        </div>
+                        <div class="recommendation-content">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacer-3);">
+                                <span class="recommendation-badge badge-choice">편집자 추천</span>
+                                <span class="recommendation-price">2,890,000원</span>
+                            </div>
+                            <h3 class="recommendation-title">4K 영상 편집 및 3D 작업 워크스테이션</h3>
+                            <ul class="recommendation-specs">
+                                <li>
+                                    <span class="material-symbols-outlined">memory</span>
+                                    Core i9-14900K
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined">sd_card</span>
+                                    DDR5 64GB
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined">videogame_asset</span>
+                                    GeForce RTX 4080 Super
+                                </li>
+                            </ul>
+                            <button class="recommendation-btn">견적 상세보기</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="recommendation-card">
+                        <div class="recommendation-image">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIQyBWoF94-z9BXL-m-94l8GYCVcts3fMzKU_7h1637AExyL0KB6_L7hDJ5IXMvVJ4UsdPdY7goWYfs0qBT5BKeyc9v82ebCDDALVtcDGZu61TUNFBg3e1x_Iu8J3cTh9PEJbEJPuMpBwji3FOcOImGwxOvyLdzLz3qCGWT2o15EMIL21O9Y9NTtk-dL73jzR3-G5jXaZGQstZKa0d1oAWLEYIXpOikn73dnkvqKsb4G1QWu1TSkw8r7G0lG7aCkMv6QiZGLqcxIpv" alt="사무용 PC">
+                        </div>
+                        <div class="recommendation-content">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacer-3);">
+                                <span class="recommendation-badge badge-steady">스테디셀러</span>
+                                <span class="recommendation-price">680,000원</span>
+                            </div>
+                            <h3 class="recommendation-title">쾌적한 사무 및 가정용 실속 세트</h3>
+                            <ul class="recommendation-specs">
+                                <li>
+                                    <span class="material-symbols-outlined">memory</span>
+                                    Core i5-13400
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined">sd_card</span>
+                                    DDR4 16GB
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined">storage</span>
+                                    NVMe SSD 500GB
+                                </li>
+                            </ul>
+                            <button class="recommendation-btn">견적 상세보기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Banner -->
+        <section class="event">
+            <div class="event-container">
+                <div>
+                    <div class="event-label">EVENT</div>
+                    <h2>신규 가입 시 부품 할인 쿠폰 증정!</h2>
+                    <p>지금 가입하고 첫 조립 PC 견적에서 최대 10만원 혜택을 받으세요.</p>
+                </div>
+                <button class="event-btn">지금 혜택받기</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4 style="display: flex; align-items: center; gap: var(--spacer-2);">
+                        <span class="material-symbols-outlined">psychology</span>
+                        팝콘 AI
+                    </h4>
+                    <p>인공지능 기반의 스마트한 조립 PC 견적 서비스. 복잡한 선택을 단순하게, 당신의 컴퓨팅 라이프를 혁신합니다.</p>
+                    <div class="footer-socials">
+                        <a href="#" title="웹사이트">
+                            <span class="material-symbols-outlined">public</span>
+                        </a>
+                        <a href="#" title="이메일">
+                            <span class="material-symbols-outlined">mail</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>서비스</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">AI 추천</a></li>
+                        <li><a href="#">견적 보관함</a></li>
+                        <li><a href="#">부품 검색</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>고객지원</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">이용약관</a></li>
+                        <li><a href="#">개인정보처리방침</a></li>
+                        <li><a href="#">고객센터</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>제휴</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">기업구매문의</a></li>
+                        <li><a href="#">부품사 제휴</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-divider">
+                © 2024 팝콘 AI. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 간단한 상호작용
+        document.addEventListener('DOMContentLoaded', function() {
+            // 카테고리 카드 클릭
+            const categoryCards = document.querySelectorAll('.category-card');
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    console.log('카테고리 선택:', this.querySelector('.category-name').textContent);
+                });
+            });
+
+            // 추천 버튼 클릭
+            const recommendBtns = document.querySelectorAll('.recommendation-btn');
+            recommendBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('견적 상세보기 클릭');
+                });
+            });
+
+            // 주 버튼 클릭
+            const primaryBtn = document.querySelector('.btn-primary-lg');
+            if (primaryBtn) {
+                primaryBtn.addEventListener('click', function() {
+                    console.log('AI 추천 시작');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

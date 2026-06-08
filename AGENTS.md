@@ -1,39 +1,31 @@
-# Agent Guidance for Popcorn AI Sales
+# 프로젝트: 팝콘PC AI 조립PC 추천 시스템
 
-## Project overview
-- This repo contains a small sales recommendation app with two main application areas:
-  - `apps/web` — frontend UI, including a Next.js app and a static HTML/CSS/JS prototype in `apps/web/prototype-html`
-  - `apps/api` — backend app layout for Python services, currently with placeholder files under `apps/api/app`
-- `docs/` contains product requirements and wireframes.
-- `scripts/etl` contains Python ETL scripts for importing CSV/spec data.
-- `infra/` contains infrastructure configuration sources.
+## 기술 스택
+- Frontend: Next.js (apps/web), TypeScript
+- Backend: FastAPI (apps/api), Python
+- 모노레포 구조 (apps / packages / scripts)
 
-## What to prioritize
-- Use `README.md` and `docs/requirements.md` as primary sources for project goals.
-- Treat `apps/web/prototype-html` as a UI prototype/reference implementation rather than the production app.
-- Recognize the current backend files are placeholders; avoid assuming the backend is fully implemented.
-- Confirm technology choices before making major changes:
-  - `apps/web/components/*.tsx` indicates React/TypeScript UI work.
-  - `apps/api/app/` structure suggests a Python API service.
+## 핵심 규칙
+- 추천 로직은 "구조화된 조건값"을 우선 기준으로 사용한다.
+  자연어 프롬프트는 사용자 이해를 돕는 안내용이다.
+- 호환성 오류가 없는 구성만 추천한다 (CPU-메인보드 소켓 등).
+- 재고 있는 부품 우선, 마진/행사 정책 반영.
+- 결제는 기존 홈페이지로 리다이렉트.
 
-## Codebase conventions
-- Preserve existing folder boundaries: frontend work stays in `apps/web`, backend work stays in `apps/api`, infrastructure stays in `infra`, scripts stay in `scripts/etl`.
-- Link to docs instead of duplicating them. For example, reference `docs/requirements.md` rather than copying content into task answers.
-- When making edits, prefer minimal, incremental changes.
+## 참고 문서
+- 요구사항: docs/requirements.md
+- 사용자 흐름: (흐름도 문서)
+- 와이어프레임: docs/wireframe-beginner.md, docs/wireframe-advanced.md
+- 화면 목록/라우팅: apps/web/app 구조 참고
 
-## Missing or uncertain data
-- There are no package manifests (`package.json`, `pyproject.toml`, `requirements.txt`) or CI workflow definitions in the repository.
-- Do not invent build/test commands. Instead ask the user to confirm package manager, framework versions, and desired scripts before adding them.
+## 데이터
+- 상품 CSV: scripts/etl/ 로 파싱 → DB 적재
+- 주요 카테고리: CPU(소켓/세대), 메인보드(소켓/칩셋/폼팩터),
+  메모리(DDR4/5), GPU(권장파워/길이), 파워(정격출력),
+  케이스(보드규격/GPU장착길이/쿨러높이), 쿨러(소켓/높이)
 
-## Useful paths
-- `README.md` — project summary
-- `docs/requirements.md` — product and business requirements
-- `docs/wireframe-beginner.md`, `docs/wireframe-advanced.md` — UX flow guidance
-- `apps/web/prototype-html` — static UI prototype with pages and assets
-- `apps/web/components` — React/TS UI components
-- `apps/api/app` — backend API layout
-- `scripts/etl` — data import scripts
-
-## Recommended next customization
-- Add `.github/copilot-instructions.md` if a dedicated workspace instruction file is needed for GitHub Copilot-specific behavior.
-- Add a custom skill for `frontend` vs `backend` tasks if the repository grows more complex.
+## 참고 문서
+- 요구사항: docs/requirements.md
+- 사용자 흐름: docs/user-flow.md
+- 와이어프레임: docs/wireframe-beginner.md, docs/wireframe-advanced.md
+- 화면 목록: docs/screen-list.md
