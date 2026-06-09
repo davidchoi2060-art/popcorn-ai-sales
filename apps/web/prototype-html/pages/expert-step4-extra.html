@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-alert": "#D32F2F",
+                        "primary": "#004581",
+                        "secondary-fixed": "#dae2ff",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "on-background": "#0f1c2b",
+                        "on-primary-fixed-variant": "#004785",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#cedbef",
+                        "surface-bg": "#f7f9fc",
+                        "background": "#f8f9ff",
+                        "on-surface-variant": "#414751",
+                        "secondary-container": "#9db7ff",
+                        "tertiary": "#004582",
+                        "secondary": "#415c9d",
+                        "on-surface": "#0f1c2b",
+                        "on-primary-container": "#bed7ff",
+                        "border-subtle": "#E5E7EB",
+                        "on-tertiary-container": "#bfd7ff",
+                        "inverse-surface": "#243141",
+                        "surface": "#f8f9ff",
+                        "success-confirm": "#388E3C",
+                        "secondary-fixed-dim": "#b1c5ff",
+                        "surface-tint": "#075fac",
+                        "surface-main": "#FFFFFF",
+                        "outline-variant": "#c1c6d3",
+                        "tertiary-fixed-dim": "#a5c8ff",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#e9f1ff",
+                        "tertiary-container": "#005dab",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#d4e3ff",
+                        "on-secondary-fixed-variant": "#274484",
+                        "surface-variant": "#d6e4f8",
+                        "on-secondary-fixed": "#001947",
+                        "outline": "#727782",
+                        "primary-container": "#005daa",
+                        "on-tertiary-fixed": "#001c3a",
+                        "surface-bright": "#f8f9ff",
+                        "tertiary-fixed": "#d4e3ff",
+                        "inverse-primary": "#a5c8ff",
+                        "surface-container-low": "#eef4ff",
+                        "surface-container": "#e4efff",
+                        "surface-container-highest": "#d6e4f8",
+                        "on-primary-fixed": "#001c3a",
+                        "on-secondary-container": "#2a4786",
+                        "on-tertiary-fixed-variant": "#004785",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#dce9fd",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-lg": "32px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "margin-mobile": "16px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["26px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Top Navigation -->
+<header class="bg-surface-main shadow-sm sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-gutter max-w-container-max mx-auto h-16">
+<div class="font-headline-md text-headline-md font-bold text-primary">
+                PoPcornPC AI
+            </div>
+<nav class="hidden md:flex gap-10 items-center h-full">
+<a class="font-title-md text-title-md text-on-surface-variant hover:text-primary transition-colors" href="#">초보자 모드</a>
+<a class="font-title-md text-title-md text-primary border-b-2 border-primary font-bold h-full flex items-center" href="#">고급자 모드</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container rounded-full">shopping_cart</button>
+<button class="bg-primary text-on-primary px-6 py-2 font-title-md text-title-md rounded hover:bg-primary-container transition-colors">로그인</button>
+</div>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-gutter py-stack-lg">
+<!-- Stepper -->
+<div class="mb-stack-lg">
+<div class="flex items-center justify-between max-w-3xl mx-auto relative">
+<div class="absolute top-5 left-0 w-full h-[2px] bg-surface-container-highest z-0"></div>
+<div class="absolute top-5 left-0 w-3/4 h-[2px] bg-primary z-0"></div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-success-confirm text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">용도 선택</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-success-confirm text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">부품 선호</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-success-confirm text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">예산 설정</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg ring-4 ring-primary-fixed">
+<span class="font-title-md text-title-md">4</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">추가 조건</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center">
+<span class="font-title-md text-title-md">5</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">최종 확인</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Left Input Area -->
+<div class="md:col-span-8 space-y-stack-lg">
+<section class="bg-surface-main p-stack-lg rounded-xl shadow-sm border border-outline-variant/20">
+<h1 class="font-headline-md text-headline-md text-on-background mb-8 flex items-center gap-3">
+<span class="w-1 h-8 bg-primary rounded-full"></span>
+                        STEP 4. 추가 조건을 설정해주세요
+                    </h1>
+<div class="space-y-10">
+<!-- 1. 소음/발열 -->
+<div class="space-y-4">
+<label class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">volume_down</span>
+                                1. 소음 및 발열 관리 선호도
+                            </label>
+<div class="grid grid-cols-3 gap-4">
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed hover:bg-surface-container-low transition-all">조용함 우선</button>
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed hover:bg-surface-container-low transition-all">쿨링 우선</button>
+<button class="py-3 px-4 rounded-lg border-2 border-primary bg-surface-container text-primary font-bold font-body-lg shadow-sm">균형 (밸런스)</button>
+</div>
+</div>
+<!-- 2. 케이스 디자인 -->
+<div class="space-y-4">
+<label class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">desktop_windows</span>
+                                2. 케이스 및 조명 스타일 (중복 선택 가능)
+                            </label>
+<div class="grid grid-cols-4 gap-4">
+<button class="py-3 px-4 rounded-lg border-2 border-primary bg-surface-container text-primary font-bold font-body-lg shadow-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">check</span>블랙
+                                </button>
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed transition-all">화이트</button>
+<button class="py-3 px-4 rounded-lg border-2 border-primary bg-surface-container text-primary font-bold font-body-lg shadow-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">check</span>RGB
+                                </button>
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed transition-all">심플</button>
+</div>
+</div>
+<!-- 3. 업그레이드 여유 -->
+<div class="space-y-4">
+<label class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">speed</span>
+                                3. 향후 부품 업그레이드 여유
+                            </label>
+<div class="grid grid-cols-3 gap-4">
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed transition-all">중요하지 않음</button>
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed transition-all">보통</button>
+<button class="py-3 px-4 rounded-lg border-2 border-primary bg-surface-container text-primary font-bold font-body-lg shadow-sm">중요 (고출력 PSU/확장성)</button>
+</div>
+</div>
+<!-- 4. OS 포함 여부 -->
+<div class="space-y-4">
+<label class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">terminal</span>
+                                4. 운영체제(OS) 설치 유무
+                            </label>
+<div class="grid grid-cols-3 gap-4">
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed transition-all">미포함</button>
+<button class="py-3 px-4 rounded-lg border-2 border-outline-variant text-on-surface-variant font-body-lg hover:border-primary-fixed transition-all">Windows 11 Home</button>
+<button class="py-3 px-4 rounded-lg border-2 border-primary bg-surface-container text-primary font-bold font-body-lg shadow-sm">Windows 11 Pro</button>
+</div>
+</div>
+<!-- 5. 브랜드 선호 -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="font-body-md text-body-md text-on-surface-variant">선호 브랜드 (쉼표로 구분)</label>
+<input class="w-full h-12 px-4 rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-lowest outline-none transition-all" placeholder="예: ASUS, Samsung, Corsair" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-body-md text-body-md text-on-surface-variant">제외 브랜드 (쉼표로 구분)</label>
+<input class="w-full h-12 px-4 rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-lowest outline-none transition-all" placeholder="예: Generic Brand X" type="text"/>
+</div>
+</div>
+<!-- 6. 조립 옵션 -->
+<div class="space-y-4 pt-4">
+<label class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">construction</span>
+                                6. 정밀 조립 및 검수 서비스
+                            </label>
+<div class="bg-surface-container-low p-6 rounded-xl border border-primary/10 grid grid-cols-1 md:grid-cols-3 gap-4">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-6 h-6 rounded border-primary text-primary focus:ring-primary/50 cursor-pointer" type="checkbox"/>
+<span class="font-body-lg text-body-lg text-on-surface group-hover:text-primary transition-colors">프리미엄 기본 조립</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-6 h-6 rounded border-primary text-primary focus:ring-primary/50 cursor-pointer" type="checkbox"/>
+<span class="font-body-lg text-body-lg text-on-surface group-hover:text-primary transition-colors">완벽 선 정리 서비스</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-6 h-6 rounded border-primary text-primary focus:ring-primary/50 cursor-pointer" type="checkbox"/>
+<span class="font-body-lg text-body-lg text-on-surface group-hover:text-primary transition-colors">부하 테스트 리포트 제공</span>
+</label>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right AI Panel -->
+<div class="md:col-span-4">
+<aside class="sticky top-24 space-y-stack-md">
+<div class="bg-primary p-6 rounded-t-xl text-on-primary">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h2 class="font-title-md text-title-md">PoPcornAI 실시간 분석</h2>
+</div>
+<p class="font-label-sm text-label-sm opacity-90">설정된 추가 조건에 따라 견적을 최적화 중입니다.</p>
+</div>
+<div class="glass-panel p-6 rounded-b-xl border-x border-b border-outline-variant/30 shadow-lg space-y-6">
+<div class="space-y-4">
+<div class="p-4 rounded-lg bg-white border-l-4 border-primary shadow-sm">
+<p class="font-body-md text-body-md text-on-surface leading-relaxed italic">
+                                    "현재 <span class="font-bold text-primary">밸런스 잡힌 쿨링</span>과 <span class="font-bold text-primary">블랙 &amp; RGB 테마</span>를 선택하셨습니다. 고급 사양인 만큼 <span class="font-bold text-primary">Windows 11 Pro</span>를 통한 보안 강화와 <span class="font-bold text-primary">정밀 조립 서비스</span>가 포함되어 안정적인 전문가용 PC가 구성될 예정입니다."
+                                </p>
+</div>
+<div class="space-y-3">
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">주요 반영 사항</h3>
+<ul class="space-y-2">
+<li class="flex items-start gap-2 font-body-md text-body-md">
+<span class="material-symbols-outlined text-success-confirm text-[18px]">verified</span>
+<span>업그레이드 여유를 고려하여 850W 이상의 고효율 파워 서플라이가 우선 추천됩니다.</span>
+</li>
+<li class="flex items-start gap-2 font-body-md text-body-md">
+<span class="material-symbols-outlined text-success-confirm text-[18px]">verified</span>
+<span>소음/발열 균형을 위해 저소음 140mm 팬이 포함된 메쉬 케이스가 선정됩니다.</span>
+</li>
+</ul>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/20">
+<div class="flex items-center justify-between mb-4">
+<span class="font-body-md text-body-md text-on-surface-variant">예상 총 견적액</span>
+<span class="font-headline-md text-headline-md text-primary font-bold">₩2,850,000 ~</span>
+</div>
+<div class="flex items-center gap-2 p-3 bg-success-confirm/10 rounded-lg">
+<span class="material-symbols-outlined text-success-confirm text-[20px]">check_circle</span>
+<span class="font-label-sm text-label-sm text-success-confirm font-bold">호환성 검사 완료 (100% 보장)</span>
+</div>
+</div>
+</div>
+<!-- Decorative Hardware Preview -->
+<div class="relative h-48 rounded-xl overflow-hidden shadow-md">
+<img class="w-full h-full object-cover" data-alt="A high-end professional gaming PC build" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3ZMT1GA2JnnybXYBbPLoF9DRcmYehEbNfpKWABkuSnmAqt-UONQNTLuHTwQqhiYq3BhOL9iIpcspjV--CduQBP3f4VIrnPMSH5Q3tnI4ICsUthiqI1Ki_KWrGHhgJx8AMA7P95zs92q8eK2jYJJI8x3apdZdv1XmGkTGLgtR8yQkO3mBOtKD2Knl49nH-ztFE7x05Xd8ziXImnCdlnOUZeOnMRBHW-kJX-SOP1VQOmYKwJdlgsdcXHxarw87V9C47tiFf2t6_k84"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+<span class="text-white font-label-sm text-label-sm">디자인 컨셉 프리뷰: 블랙 &amp; RGB</span>
+</div>
+</div>
+</aside>
+</div>
+</div>
+<!-- Navigation Buttons -->
+<div class="mt-stack-lg flex justify-between items-center max-w-container-max mx-auto py-8 border-t border-outline-variant/30">
+<button class="flex items-center gap-2 px-8 py-3 rounded-lg border-2 border-primary text-primary font-title-md hover:bg-surface-container transition-all active:scale-95">
+<span class="material-symbols-outlined">arrow_back</span>
+                이전 단계
+            </button>
+<button class="flex items-center gap-2 px-10 py-3 rounded-lg bg-primary text-on-primary font-title-md hover:bg-primary-container shadow-lg shadow-primary/20 transition-all active:scale-95">
+                다음 단계 (최종 확인)
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface text-surface-main">
+<div class="flex flex-col md:flex-row justify-between items-center py-stack-lg px-gutter max-w-container-max mx-auto">
+<div class="mb-6 md:mb-0">
+<div class="font-title-md text-title-md mb-2">PoPcornPC AI</div>
+<p class="font-body-md text-body-md opacity-70 max-w-md">
+                    © 2024 PoPcornPC AI. 모든 하드웨어 성능 수치는 벤치마크에 기반한 추정치입니다.
+                </p>
+</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-body-md text-body-md opacity-70 hover:opacity-100 transition-opacity" href="#">회사 소개</a>
+<a class="font-body-md text-body-md opacity-70 hover:opacity-100 transition-opacity" href="#">이용 약관</a>
+<a class="font-body-md text-body-md opacity-70 hover:opacity-100 transition-opacity" href="#">개인정보 처리방침</a>
+<a class="font-body-md text-body-md opacity-70 hover:opacity-100 transition-opacity" href="#">고객 지원</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple Interaction Logic for toggling buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.parentElement.classList.contains('grid') && !this.innerHTML.includes('check')) {
+                    this.parentElement.querySelectorAll('button').forEach(b => {
+                        b.classList.remove('border-primary', 'bg-surface-container', 'text-primary', 'font-bold', 'shadow-sm');
+                        b.classList.add('border-outline-variant', 'text-on-surface-variant');
+                        const icon = b.querySelector('.material-symbols-outlined');
+                        if (icon && icon.innerText === 'check') icon.remove();
+                    });
+                    this.classList.remove('border-outline-variant', 'text-on-surface-variant');
+                    this.classList.add('border-primary', 'bg-surface-container', 'text-primary', 'font-bold', 'shadow-sm');
+                }
+            });
+        });
+    </script>
+</body></html>

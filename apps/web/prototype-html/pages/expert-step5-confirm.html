@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PoPcornPC AI - 최종 요약 확인</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-container": "#005dab",
+                      "secondary-fixed": "#dae2ff",
+                      "primary": "#004581",
+                      "on-secondary-container": "#2a4786",
+                      "on-secondary-fixed": "#001947",
+                      "border-subtle": "#E5E7EB",
+                      "background": "#f8f9ff",
+                      "tertiary-fixed-dim": "#a5c8ff",
+                      "on-error": "#ffffff",
+                      "on-tertiary-container": "#bfd7ff",
+                      "surface-container-low": "#eef4ff",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed-dim": "#b1c5ff",
+                      "primary-fixed": "#d4e3ff",
+                      "secondary-container": "#9db7ff",
+                      "on-background": "#0f1c2b",
+                      "surface-container-highest": "#d6e4f8",
+                      "inverse-surface": "#243141",
+                      "surface-dim": "#cedbef",
+                      "inverse-on-surface": "#e9f1ff",
+                      "primary-container": "#005daa",
+                      "surface-container": "#e4efff",
+                      "on-surface": "#0f1c2b",
+                      "error-container": "#ffdad6",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed": "#001c3a",
+                      "tertiary-fixed": "#d4e3ff",
+                      "surface-tint": "#075fac",
+                      "on-tertiary-fixed-variant": "#004785",
+                      "on-error-container": "#93000a",
+                      "success-confirm": "#388E3C",
+                      "surface-bg": "#f7f9fc",
+                      "surface-variant": "#d6e4f8",
+                      "tertiary": "#004582",
+                      "inverse-primary": "#a5c8ff",
+                      "surface-main": "#FFFFFF",
+                      "surface": "#f8f9ff",
+                      "on-secondary": "#ffffff",
+                      "error-alert": "#D32F2F",
+                      "error": "#ba1a1a",
+                      "outline": "#727782",
+                      "on-primary-fixed": "#001c3a",
+                      "primary-fixed-dim": "#a5c8ff",
+                      "on-secondary-fixed-variant": "#274484",
+                      "on-primary-container": "#bed7ff",
+                      "surface-container-high": "#dce9fd",
+                      "outline-variant": "#c1c6d3",
+                      "on-surface-variant": "#414751",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#f8f9ff",
+                      "secondary": "#415c9d",
+                      "on-primary-fixed-variant": "#004785"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "stack-sm": "8px",
+                      "unit": "4px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "stack-lg": "32px",
+                      "container-max": "1200px"
+              },
+              "fontFamily": {
+                      "title-md": ["Inter", "Noto Sans KR"],
+                      "headline-lg": ["Inter", "Noto Sans KR"],
+                      "body-lg": ["Inter", "Noto Sans KR"],
+                      "label-sm": ["Inter", "Noto Sans KR"],
+                      "headline-md": ["Inter", "Noto Sans KR"],
+                      "body-md": ["Inter", "Noto Sans KR"]
+              },
+              "fontSize": {
+                      "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-surface-bg text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-surface-main dark:bg-inverse-surface shadow-sm sticky top-0 z-50">
+<nav class="flex justify-between items-center w-full px-gutter max-w-container-max mx-auto h-16">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+            PoPcornPC AI
+        </div>
+<div class="hidden md:flex items-center gap-stack-lg">
+<a class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant transition-all duration-200 active:scale-95 hover:text-primary dark:hover:text-primary-fixed px-2" href="#">초보자 모드</a>
+<a class="font-title-md text-title-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary font-bold pb-1 transition-all duration-200 active:scale-95" href="#">고급자 모드</a>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary p-2">shopping_cart</button>
+<button class="bg-primary text-on-primary px-6 py-2 font-title-md rounded-lg transition-all active:scale-95">로그인</button>
+</div>
+</nav>
+</header>
+<main class="max-w-container-max mx-auto px-gutter py-stack-lg min-h-[calc(100vh-128px)]">
+<!-- Step Indicator -->
+<div class="flex items-center justify-center mb-stack-lg w-full max-w-3xl mx-auto">
+<div class="flex items-center justify-between w-full relative">
+<!-- Progress Line Background -->
+<div class="absolute top-4 left-0 w-full h-1 bg-surface-container-highest -z-10"></div>
+<!-- Active Progress Line -->
+<div class="absolute top-4 left-0 w-full h-1 bg-primary -z-10"></div>
+<!-- Step 1: Completed -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-label-sm font-bold text-primary">용도 선택</span>
+</div>
+<!-- Step 2: Completed -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-label-sm font-bold text-primary">부품 선호</span>
+</div>
+<!-- Step 3: Completed -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-label-sm font-bold text-primary">예산 설정</span>
+</div>
+<!-- Step 4: Completed -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="text-label-sm font-bold text-primary">추가 조건</span>
+</div>
+<!-- Step 5: Active -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-white border-4 border-primary text-primary flex items-center justify-center shadow-lg -mt-1">
+<span class="font-bold">5</span>
+</div>
+<span class="text-label-sm font-bold text-primary">최종 확인</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Summary Section -->
+<section class="lg:col-span-8 space-y-stack-md">
+<div class="mb-stack-md">
+<h1 class="font-headline-md text-headline-md text-primary mb-2">STEP 5. 최종 조건을 확인해주세요</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">입력하신 모든 하드웨어 조건이 AI 분석 준비를 마쳤습니다.</p>
+</div>
+<!-- Summary Matrix -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Usage & Priority Card -->
+<div class="bg-surface-main rounded-xl p-stack-md shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-sm text-primary">
+<span class="material-symbols-outlined">settings_suggest</span>
+<h3 class="font-title-md text-title-md">기본 목적 및 우선순위</h3>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">사용 목적</span>
+<span class="font-bold">4K 영상 편집 및 3D 렌더링</span>
+</div>
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">우선순위</span>
+<span class="font-bold">작업 생산성 최우선</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface-variant font-body-md">예산 범위</span>
+<span class="font-bold text-primary">4,500,000원 이하</span>
+</div>
+</div>
+</div>
+<!-- Core Hardware Card -->
+<div class="bg-surface-main rounded-xl p-stack-md shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-sm text-primary">
+<span class="material-symbols-outlined">memory</span>
+<h3 class="font-title-md text-title-md">주요 프로세싱 유닛</h3>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">CPU</span>
+<span class="font-bold text-right">Intel Core i9-14900K 이상</span>
+</div>
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">GPU</span>
+<span class="font-bold text-right">NVIDIA RTX 4090 (24GB)</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface-variant font-body-md">메모리 (RAM)</span>
+<span class="font-bold">DDR5 64GB (32GB x 2)</span>
+</div>
+</div>
+</div>
+<!-- Storage & Media Card -->
+<div class="bg-surface-main rounded-xl p-stack-md shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-sm text-primary">
+<span class="material-symbols-outlined">storage</span>
+<h3 class="font-title-md text-title-md">저장 장치 및 디스플레이</h3>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">SSD</span>
+<span class="font-bold">NVMe Gen5 2TB (OS/Tool)</span>
+</div>
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">해상도</span>
+<span class="font-bold">UHD (3840 x 2160) 144Hz</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface-variant font-body-md">OS</span>
+<span class="font-bold">Windows 11 Pro 포함</span>
+</div>
+</div>
+</div>
+<!-- Environment & Case Card -->
+<div class="bg-surface-main rounded-xl p-stack-md shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-sm text-primary">
+<span class="material-symbols-outlined">architecture</span>
+<h3 class="font-title-md text-title-md">환경 및 케이스 디자인</h3>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">소음/발열</span>
+<span class="font-bold">저소음 고효율 쿨링 지향</span>
+</div>
+<div class="flex justify-between border-b border-surface-container py-1">
+<span class="text-on-surface-variant font-body-md">케이스</span>
+<span class="font-bold">빅타워 (E-ATX 대응)</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface-variant font-body-md">호환성 검토</span>
+<span class="font-bold text-success-confirm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> 확인됨
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Detailed Prompt Context -->
+<div class="bg-surface-container-low rounded-xl p-stack-md border-l-4 border-primary mt-stack-md">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="font-title-md text-title-md text-primary">고급자용 세부 분석 참고</p>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    위 조건들은 전문가용 워크스테이션 구축을 위한 하이엔드 사양입니다. PoPcornAI는 단순히 부품을 매칭하는 것을 넘어, 전력 공급의 안정성(PSU), 병목 현상(Bottleneck) 분석, 그리고 최신 코덱 지원 여부까지 심층적으로 분석하여 최적의 부품 조합을 제안합니다.
+                </p>
+</div>
+</section>
+<!-- Right AI Panel -->
+<aside class="lg:col-span-4 h-full">
+<div class="glass-panel sticky top-24 rounded-2xl overflow-hidden flex flex-col shadow-xl border-primary/20">
+<!-- AI Header -->
+<div class="bg-primary p-stack-md text-on-primary flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-title-md text-title-md uppercase tracking-wider">AI 분석 준비 완료</span>
+</div>
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/60"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/30"></div>
+</div>
+</div>
+<!-- AI Content Body -->
+<div class="p-stack-md bg-white/80 flex-1 space-y-stack-md max-h-[500px] overflow-y-auto">
+<div class="space-y-stack-sm">
+<p class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-tighter">생성된 프롬프트 요약</p>
+<div class="bg-surface-container-lowest rounded-lg p-3 border border-border-subtle shadow-inner">
+<p class="font-body-md text-body-md leading-relaxed text-on-surface-variant italic">
+                                "PoPcornAI, 다음 조건을 충족하는 최상위 전문가용 PC 견적을 도출해줘: [목적: 4K 영상/3D 렌더링], [예산: 450만원 미만], [CPU: i9-14900K 이상], [GPU: RTX 4090 24GB 필수], [RAM: DDR5 64GB], [Storage: Gen5 NVMe 2TB], [Display: UHD 144Hz], [Priority: 작업 안정성 및 렌더링 가속], [Case: 저소음 빅타워], [OS: Win 11 Pro]. 모든 부품 간 전력 부하 테스트와 열 설계 전력(TDP)을 고려하여 최고의 생산성을 제공하는 부품 리스트와 벤치마크 예측값을 보고해."
+                            </p>
+</div>
+</div>
+<div class="space-y-stack-sm">
+<p class="font-label-sm text-label-sm text-on-surface-variant font-bold">기대 분석 매트릭스</p>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-success-confirm"></div>
+<span class="text-body-md font-body-md">호환성 점수: 100%</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<span class="text-body-md font-body-md">렌더링 속도: 최상급 (Ultra High)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="text-body-md font-body-md">예상 수명: 5년 이상</span>
+</div>
+</div>
+</div>
+<!-- Visual Decor -->
+<div class="relative h-20 rounded-lg overflow-hidden bg-on-background">
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-full h-full opacity-30 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-transparent to-transparent animate-pulse"></div>
+<span class="absolute text-white font-label-sm tracking-widest opacity-80">AI 신경망 분석 엔진 활성화</span>
+</div>
+</div>
+</div>
+<!-- AI Panel Footer -->
+<div class="p-stack-md bg-surface-container-high border-t border-border-subtle">
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-title-md flex items-center justify-center gap-2 hover:brightness-110 transition-all active:scale-95 shadow-md">
+<span class="material-symbols-outlined">auto_awesome</span>
+                        AI 추천 받기
+                    </button>
+</div>
+</div>
+</aside>
+</div>
+<!-- Navigation Buttons -->
+<div class="mt-stack-lg border-t border-border-subtle pt-stack-md flex justify-between items-center">
+<button class="flex items-center gap-2 px-6 py-3 font-title-md text-on-surface-variant hover:bg-surface-container rounded-lg transition-all active:scale-95">
+<span class="material-symbols-outlined">arrow_back</span>
+            이전 단계
+        </button>
+<div class="flex gap-stack-md">
+<button class="px-8 py-3 font-title-md border border-outline text-on-surface-variant rounded-lg hover:bg-surface-container transition-all active:scale-95">
+                임시 저장
+            </button>
+<button class="px-10 py-3 font-title-md bg-primary text-on-primary rounded-lg shadow-lg hover:bg-primary-container transition-all active:scale-95 flex items-center gap-2">
+                최종 분석 시작
+                <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface dark:bg-on-background w-full border-t border-outline-variant/20 mt-12">
+<div class="flex flex-col md:flex-row justify-between items-center py-stack-lg px-gutter max-w-container-max mx-auto text-white">
+<div class="font-title-md text-title-md mb-4 md:mb-0">
+            PoPcornPC AI
+        </div>
+<div class="flex flex-wrap justify-center gap-stack-md mb-4 md:mb-0">
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-white underline transition-colors" href="#">회사 소개</a>
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-white underline transition-colors" href="#">이용 약관</a>
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-white underline transition-colors" href="#">개인정보 처리방침</a>
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-white underline transition-colors" href="#">하드웨어 고지사항</a>
+</div>
+<p class="font-body-md text-body-md text-surface-variant/80 text-center md:text-right max-w-md">
+            © 2024 PoPcornPC AI. 모든 하드웨어 성능 수치는 합성 벤치마크를 기반으로 한 추정치입니다.
+        </p>
+</div>
+</footer>
+<script>
+    // Micro-interaction logic for buttons
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('mousedown', () => {
+            button.classList.add('scale-95');
+        });
+        button.addEventListener('mouseup', () => {
+            button.classList.remove('scale-95');
+        });
+        button.addEventListener('mouseleave', () => {
+            button.classList.remove('scale-95');
+        });
+    });
+</script>
+</body></html>
