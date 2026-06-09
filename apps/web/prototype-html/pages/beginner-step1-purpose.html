@@ -1,0 +1,362 @@
+<!DOCTYPE html><html class="light" lang="ko"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>PoPcornPC AI - 초보자 모드</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#e4efff",
+                        "on-secondary-fixed": "#001947",
+                        "inverse-surface": "#243141",
+                        "success-confirm": "#388E3C",
+                        "surface-tint": "#075fac",
+                        "inverse-primary": "#a5c8ff",
+                        "secondary-fixed-dim": "#b1c5ff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#bfd7ff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#bed7ff",
+                        "secondary-container": "#9db7ff",
+                        "background": "#f8f9ff",
+                        "on-tertiary-fixed-variant": "#004785",
+                        "on-primary-fixed": "#001c3a",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "on-primary-fixed-variant": "#004785",
+                        "inverse-on-surface": "#e9f1ff",
+                        "on-secondary-container": "#2a4786",
+                        "surface-container-low": "#eef4ff",
+                        "on-tertiary-fixed": "#001c3a",
+                        "surface-dim": "#cedbef",
+                        "tertiary-container": "#005dab",
+                        "secondary-fixed": "#dae2ff",
+                        "surface-container-highest": "#d6e4f8",
+                        "secondary": "#415c9d",
+                        "primary": "#004581",
+                        "border-subtle": "#E5E7EB",
+                        "outline-variant": "#c1c6d3",
+                        "on-secondary-fixed-variant": "#274484",
+                        "tertiary": "#004582",
+                        "primary-fixed": "#d4e3ff",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#f8f9ff",
+                        "on-error": "#ffffff",
+                        "surface-bg": "#f7f9fc",
+                        "outline": "#727782",
+                        "surface-main": "#FFFFFF",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-background": "#0f1c2b",
+                        "on-surface-variant": "#414751",
+                        "on-surface": "#0f1c2b",
+                        "surface-container-high": "#dce9fd",
+                        "error-alert": "#D32F2F",
+                        "surface-variant": "#d6e4f8",
+                        "on-primary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "tertiary-fixed": "#d4e3ff",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#a5c8ff",
+                        "primary-container": "#005daa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "stack-lg": "32px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["26px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .step-active {
+            @apply border-primary text-primary font-bold;
+        }
+        .step-inactive {
+            @apply border-outline-variant text-on-surface-variant;
+        }
+        .card-shadow {
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .card-active {
+            border: 2px solid #005daa;
+            background-color: #f0f7ff;
+        }
+    </style>
+</head>
+<body class="bg-surface-bg font-body-md text-on-surface min-h-screen flex flex-col pt-16">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-16 max-w-container-max mx-auto bg-surface-container-highest dark:bg-inverse-surface shadow-sm">
+<div class="flex items-center gap-stack-lg">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">PoPcornPC AI</span>
+<div class="hidden md:flex gap-stack-md">
+<a class="font-title-md text-title-md text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">초보자 모드</a>
+<a class="font-title-md text-title-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">고급자 모드</a>
+</div>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="text-primary dark:text-primary-fixed font-title-md hover:opacity-80 transition-all">장바구니</button>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-xl font-title-md hover:opacity-80 transition-all">로그인</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-stack-lg">
+<!-- Progress Stepper -->
+<div class="w-full flex justify-center mb-stack-lg">
+<div class="flex items-center w-full max-w-3xl">
+<div class="flex flex-col items-center flex-1">
+<div class="w-10 h-10 rounded-full border-2 flex items-center justify-center bg-primary text-white border-primary">1</div>
+<span class="mt-2 font-label-sm text-label-sm text-primary font-bold">1. 용도</span>
+</div>
+<div class="flex-grow h-[2px] bg-outline-variant mb-6"></div>
+<div class="flex flex-col items-center flex-1">
+<div class="w-10 h-10 rounded-full border-2 flex items-center justify-center bg-white text-on-surface-variant border-outline-variant">2</div>
+<span class="mt-2 font-label-sm text-label-sm text-on-surface-variant">2. 예산</span>
+</div>
+<div class="flex-grow h-[2px] bg-outline-variant mb-6"></div>
+<div class="flex flex-col items-center flex-1">
+<div class="w-10 h-10 rounded-full border-2 flex items-center justify-center bg-white text-on-surface-variant border-outline-variant">3</div>
+<span class="mt-2 font-label-sm text-label-sm text-on-surface-variant">3. 선호</span>
+</div>
+<div class="flex-grow h-[2px] bg-outline-variant mb-6"></div>
+<div class="flex flex-col items-center flex-1">
+<div class="w-10 h-10 rounded-full border-2 flex items-center justify-center bg-white text-on-surface-variant border-outline-variant">4</div>
+<span class="mt-2 font-label-sm text-label-sm text-on-surface-variant">4. 확인</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Left Selection Area -->
+<section class="md:col-span-8">
+<header class="mb-stack-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-stack-sm">STEP 1. 어떤 용도로 사용할 예정인가요?</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">가장 주된 용도를 선택해 주세요. 여러 개 선택도 가능합니다.</p>
+</header>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-stack-md">
+<!-- Item 1 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="work">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg overflow-hidden">
+<img alt="Office work icon" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLsGBICR6kGvZW8iKN-OgxopFFlyKJF0a66TiKLjqCCKDObNJIvt7fPMb45rvFp5_TEVo_xXSQHOJp9usyXFag50DTrqFmDxk75j-UvUGYNl9-SROHUeoq33cieUlicZgL0KDjl9V-l99gELCHTUHMbIq535yC173HXSLdMl7TfA4_tYbQUlPMKgD9-kclXyLC0GZuvalLKuhs9az4C9waW8RCn-fQEYdswo09vOopqGryDdUX56whqn6A">
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">업무용</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">문서 작업, 엑셀, 가벼운 웹 서핑 중심의 안정적인 환경</p>
+</div>
+</div>
+</label>
+<!-- Item 2 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="gaming">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg overflow-hidden">
+<img alt="Gaming icon" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvUo9tTlCOLpcYX3m4mB_WNlGQDQ0qZ2Q5jhKC_BmdPi021_Z7GTh4yGDA575zPZbZNZINhR2OMjO7GwcYytu67fTYVuNnDOeWOFsROpzLlvG4TDxym2mpHziCBPcFtuEImj1plMB3b25-kMg-lIFG7SoYZZHLurKGuxfJ8VhsHa1HepTuiQh1e8Cpqsl7DM24cJzKmoD-WSj2otEME4dUCmXXNo_Dc5SpOy9q9YZ_ldY2mDBqsuYFWnjw">
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">게임용</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">최신 고사양 게임부터 캐주얼 게임까지 끊김 없는 플레이</p>
+</div>
+</div>
+</label>
+<!-- Item 3 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="video">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg overflow-hidden">
+<img alt="Video editing icon" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLshY-gu12wjNnEFiPAHV6qdQpgiEJKtXmHl2ARgAD4edu6V1ovRUTcOPDZ7USh3tHCnWHPGiRBsAPZVkwZCdjsQNjevoQ7XqP5YHgCc3XLP77Rv9HztomtsbHAlWRK9xfXBAryCg0yrSjQioNKK-2pO2eWxGK6_u5AQkQYUuaiIAUzAbD9ljhs9dzQMjV7a47MqHNXZncFIgvni9LusCW25IaxbadWDla8oRYajZ1EFtXEIETWRVyu4rRI">
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">영상편집</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">4K 영상 편집, 렌더링, 고해상도 그래픽 작업 최적화</p>
+</div>
+</div>
+</label>
+<!-- Item 4 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="study">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg overflow-hidden">
+<img alt="Education icon" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLuk5ayzNz9fl3g6U4uRysgsBEBWSa1g9o_lVl40omk8q4JHKy_jb18SartnQv5rqHSPdNdqg04ohBZe7eDDUfZzMggpmLVX0Hfgqh9SEIOnddyJi49Wd61zfD1qkNP1PFW4m7hNF-nnRVPEyPV2C37tYOhCoEPSmB4Zuy9cjqvjjs0So6RL0xAgvOi4I_eSMBPeAVlBOVM0c-LUtWcJ2N2tvSMGKo6jcZcI9rUGTirnFReNoCjFIbY2zQw">
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">학습용</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">온라인 강의 시청 및 과제 수행에 부족함 없는 성능</p>
+</div>
+</div>
+</label>
+<!-- Item 5 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="streaming">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">방송용</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">실시간 스트리밍 및 다중 송출 환경</p>
+</div>
+</div>
+</label>
+<!-- Item 6 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="design">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">palette</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">디자인 작업</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">포토샵, 일러스트 등 그래픽 툴 활용</p>
+</div>
+</div>
+</label>
+<!-- Item 7 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="web">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">language</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">인터넷/유튜브</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">가벼운 서핑과 영상 감상 위주 사용</p>
+</div>
+</div>
+</label>
+<!-- Item 8 -->
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="purpose" onchange="updatePrompt()" type="checkbox" value="unknown">
+<div class="glass-card card-shadow p-stack-md rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50 transition-all flex gap-stack-md h-full items-start">
+<div class="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">help</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-1">아직 잘 모르겠어요</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">범용적으로 사용 가능한 표준 PC 추천</p>
+</div>
+</div>
+</label>
+</div>
+<div class="mt-stack-lg flex justify-between items-center">
+<button class="px-8 py-3 rounded-full bg-outline-variant text-on-surface-variant font-title-md opacity-50 cursor-not-allowed transition-all" disabled="">이전 단계</button>
+<button class="px-8 py-3 rounded-full bg-primary text-white font-title-md hover:bg-primary/90 shadow-lg transition-all">다음 단계로</button>
+</div>
+</section>
+<!-- Right AI Prompt Panel -->
+<aside class="md:col-span-4 flex flex-col gap-stack-md">
+<div class="bg-surface-main p-stack-md rounded-xl card-shadow border-l-4 border-tertiary shadow-sm h-fit sticky top-24">
+<div class="flex items-center justify-between mb-stack-md"><h2 class="font-title-md text-title-md text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-primary">psychology</span>AI에게 이렇게 요청할게요</h2><span class="px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary font-label-sm text-[10px] animate-pulse flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>LIVE</span></div>
+<div class="bg-surface-main p-stack-md rounded-lg min-h-[200px] mb-stack-md border border-outline-variant/50"><span class="material-symbols-outlined text-primary/20 text-4xl mb-2 block">format_quote</span>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed italic" id="ai-prompt-text">안녕하세요! 사용 목적과 예산에 맞는 조립PC 구성을 찾고 있습니다.<br><br>주 용도는 업무용입니다. 문서 작업, 인터넷, 화상회의, 멀티태스킹을 안정적으로 사용할 수 있는 구성을 원합니다.</p>
+</div>
+<div class="flex gap-2"><button class="flex-1 py-2 px-3 bg-primary text-white rounded-lg font-label-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-1" onclick="copyPrompt()"><span class="material-symbols-outlined text-lg">content_copy</span>복사</button><button class="flex-1 py-2 px-3 bg-white border border-outline-variant rounded-lg font-label-sm text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-1"><span class="material-symbols-outlined text-lg">edit</span>직접 수정</button><button class="flex-1 py-2 px-3 bg-white border border-outline-variant rounded-lg font-label-sm text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-1" onclick="resetChoices()"><span class="material-symbols-outlined text-lg">refresh</span>초기화</button></div>
+<div class="mt-stack-md p-stack-sm rounded-lg bg-surface-container flex items-start gap-stack-sm border-l-4 border-primary">
+<span class="material-symbols-outlined text-primary text-lg">info</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">PoPcornAI가 선택하신 용도에 맞춰 가장 가성비 좋고 성능이 확실한 부품들을 실시간으로 분석합니다.</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-gutter flex flex-col md:flex-row justify-between items-start gap-stack-md bg-inverse-surface dark:bg-black mt-stack-lg">
+<div class="flex flex-col gap-stack-sm">
+<span class="font-headline-md text-headline-md text-surface-container-lowest">PoPcornPC AI</span>
+<p class="font-body-md text-body-md text-surface-variant max-w-xl">© 2024 PoPcornPC AI. All rights reserved. 본 서비스에서 제공하는 성능 지표는 특정 환경에서의 테스트 결과로 실제 사용 환경에 따라 차이가 있을 수 있습니다.</p>
+</div>
+<div class="flex flex-wrap gap-stack-md">
+<a class="font-body-md text-body-md text-surface-variant hover:text-primary-fixed-dim" href="#">이용약관</a>
+<a class="font-body-md text-body-md text-surface-variant hover:text-primary-fixed-dim" href="#">회사정보</a>
+<a class="font-body-md text-body-md text-surface-variant hover:text-primary-fixed-dim" href="#">법적 고지사항</a>
+<a class="font-body-md text-body-md text-surface-variant hover:text-primary-fixed-dim underline" href="#">개인정보처리방침</a>
+</div>
+</footer>
+<script>
+        const prompts = {
+            work: "문서 작업, 인터넷, 화상회의, 멀티태스킹을 안정적으로 사용할 수 있는 사무용 PC 구성을 원합니다.",
+            gaming: "최신 고사양 게임을 끊김 없이 즐길 수 있도록 그래픽 성능이 우수한 게이밍 PC 구성을 추천해주세요.",
+            video: "4K 고화질 영상 편집과 빠른 렌더링 속도를 보장하는 전문가용 작업 환경을 구축하고 싶습니다.",
+            study: "온라인 강의 시청과 과제 수행에 적합하며, 장시간 사용해도 눈이 편안하고 안정적인 가성비 구성을 원합니다.",
+            streaming: "게임 플레이와 동시 송출이 원활하며 고음질 마이크와 캠 연결이 안정적인 방송용 PC가 필요합니다.",
+            design: "포토샵, 일러스트 등 디자인 툴 사용 시 색 표현이 정확하고 레이어 작업이 쾌적한 구성을 추천해주세요.",
+            web: "유튜브 시청과 웹 서핑을 주로 하며, 부팅 속도가 빠르고 공간을 적게 차지하는 효율적인 PC를 원합니다.",
+            unknown: "다양한 용도로 무난하게 사용할 수 있고 추후 업그레이드가 용이한 표준적인 추천 PC 구성을 보여주세요."
+        };
+
+        function updatePrompt() {
+            const selected = Array.from(document.querySelectorAll('input[name="purpose"]:checked')).map(el => el.value);
+            const promptBox = document.getElementById('ai-prompt-text');
+            
+            if (selected.length === 0) {
+                promptBox.innerHTML = "사용 목적을 선택하시면 최적의 추천 메시지가 자동으로 생성됩니다.";
+                return;
+            }
+
+            let text = "안녕하세요! 사용 목적과 예산에 맞는 조립PC 구성을 찾고 있습니다. ";
+            const selectedTexts = selected.map(val => prompts[val]);
+            text += "주 용도는 " + selected.map(v => document.querySelector(`input[value="${v}"]`).parentElement.querySelector('h3').innerText).join(', ') + " 입니다. ";
+            text += selectedTexts.join(' ');
+
+            promptBox.innerHTML = text;
+        }
+
+        function resetChoices() {
+            document.querySelectorAll('input[name="purpose"]').forEach(el => el.checked = false);
+            updatePrompt();
+        }
+
+        function copyPrompt() {
+            const text = document.getElementById('ai-prompt-text').innerText;
+            if (text.includes("선택하시면")) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('프롬프트가 클립보드에 복사되었습니다.');
+            });
+        }
+    </script>
+
+
+
+
+
+
+</body></html>

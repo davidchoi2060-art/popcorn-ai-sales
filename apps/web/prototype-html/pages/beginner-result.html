@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PoPcornPC AI - 초보자용 추천 결과</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#bed7ff",
+                        "error-alert": "#D32F2F",
+                        "surface-tint": "#075fac",
+                        "border-subtle": "#E5E7EB",
+                        "surface-main": "#FFFFFF",
+                        "on-tertiary-container": "#bfd7ff",
+                        "surface-container-low": "#eef4ff",
+                        "on-background": "#0f1c2b",
+                        "background": "#f8f9ff",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#414751",
+                        "on-tertiary-fixed-variant": "#004785",
+                        "tertiary-container": "#005dab",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "error-container": "#ffdad6",
+                        "surface-bg": "#f7f9fc",
+                        "surface-container-high": "#dce9fd",
+                        "secondary-fixed": "#dae2ff",
+                        "secondary": "#415c9d",
+                        "outline": "#727782",
+                        "inverse-on-surface": "#e9f1ff",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#9db7ff",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "secondary-fixed-dim": "#b1c5ff",
+                        "outline-variant": "#c1c6d3",
+                        "on-secondary-container": "#2a4786",
+                        "on-primary-fixed-variant": "#004785",
+                        "tertiary-fixed": "#d4e3ff",
+                        "success-confirm": "#388E3C",
+                        "surface-dim": "#cedbef",
+                        "surface-variant": "#d6e4f8",
+                        "on-tertiary-fixed": "#001c3a",
+                        "inverse-primary": "#a5c8ff",
+                        "on-secondary-fixed": "#001947",
+                        "tertiary-fixed-dim": "#a5c8ff",
+                        "on-primary-fixed": "#001c3a",
+                        "on-secondary-fixed-variant": "#274484",
+                        "tertiary": "#004582",
+                        "on-surface": "#0f1c2b",
+                        "surface-container": "#e4efff",
+                        "primary-fixed": "#d4e3ff",
+                        "primary": "#004581",
+                        "surface": "#f8f9ff",
+                        "primary-container": "#005daa",
+                        "inverse-surface": "#243141",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#d6e4f8",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "container-max": "1200px",
+                        "unit": "4px",
+                        "stack-lg": "32px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter", "Noto Sans KR"],
+                        "label-sm": ["Inter", "Noto Sans KR"],
+                        "headline-lg": ["Inter", "Noto Sans KR"],
+                        "body-lg": ["Inter", "Noto Sans KR"],
+                        "headline-md": ["Inter", "Noto Sans KR"],
+                        "title-md": ["Inter", "Noto Sans KR"],
+                        "headline-lg-mobile": ["Inter", "Noto Sans KR"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["26px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #f7f9fc; color: #0f1c2b; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .tab-active { border-bottom: 2px solid #004581; color: #004581; font-weight: 700; }
+        .recommendation-active { border: 2px solid #005daa; box-shadow: 0 10px 25px -5px rgba(0, 93, 170, 0.1); }
+    </style>
+</head>
+<body class="bg-surface-bg text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-surface-container-highest dark:bg-inverse-surface shadow-sm fixed top-0 w-full z-50">
+<div class="flex justify-between items-center w-full px-gutter max-w-container-max mx-auto h-16">
+<div class="flex items-center gap-stack-lg">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">PoPcornPC AI</span>
+<nav class="hidden md:flex items-center gap-stack-md">
+<a class="font-title-md text-title-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary font-bold pb-1 transition-all duration-200 active:scale-95" href="#">초보자 모드</a>
+<a class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-bright/50 transition-all duration-200 active:scale-95" href="#">고급자 모드</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary p-2">shopping_cart</button>
+<button class="bg-primary text-on-primary px-stack-md py-1.5 rounded-full font-title-md transition-all active:scale-95">로그인</button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-stack-lg px-gutter max-w-container-max mx-auto">
+<!-- Section 1: AI Recommendation Summary -->
+<section class="mb-stack-lg animate-fade-in">
+<div class="inline-flex items-center gap-2 bg-primary-container/10 px-4 py-2 rounded-full mb-4">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-label-sm text-primary font-bold">PoPcornAI 분석 완료</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg mb-2">업무용 / 80~120만원 / 안정성 중심</h1>
+<p class="font-body-lg text-on-surface-variant max-w-2xl">고객님의 라이프스타일을 분석하여 가장 합리적이고 신뢰할 수 있는 3가지 하드웨어 구성을 제안합니다.</p>
+</section>
+<!-- Section 2: Three Recommendation Cards -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack-lg">
+<!-- Card 1: 가성비형 -->
+<div class="bg-surface-main rounded-xl p-stack-md border border-border-subtle hover:shadow-lg transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-surface-container-high text-secondary font-label-sm rounded-lg">가성비형</span>
+<span class="material-symbols-outlined text-success-confirm" style="font-variation-settings: 'FILL' 1;" title="호환성 정상">check_circle</span>
+</div>
+<div class="aspect-square bg-surface-bg rounded-lg mb-4 overflow-hidden relative group">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A clean, minimalist white micro-ATX computer case standing in a brightly lit professional office setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0eagCa9P8i7B_RWhdJAeJSSm_mOhiT5L-2xAnf8o9qhE7vaQp0tN7lGYPHe2n46BpFSg9x2OLqHFWNIxO41M73DwL_P_cVV0jtlsdk7mRxhBLornUISJr__WopdG4T7ABFA0Q6KQibyZ1PUma4v10hNkeLfJ8kNbEDjXVCAaRdAGIvTqOWGhKmKZILD-LazHofiMZQ-gCkfeS4wui27L4tTF_XO5KThxkVgud4wX3S-sUv5Wv2Cui30byqLB0GAcNHnkjlGmYeUI"/>
+</div>
+<h3 class="font-title-md text-title-md mb-1">~850,000 KRW</h3>
+<p class="font-body-md text-on-surface-variant mb-4">업무용으로 충분한 가성비 구성</p>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px]">dresser</span> Core i3 Processor
+                </div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px]">memory</span> 16GB RAM
+                </div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px]">inventory_2</span> 내장 그래픽
+                </div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex justify-between items-center text-label-sm">
+<span>사무용</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-secondary w-[90%] h-full"></div></div>
+</div>
+<div class="flex justify-between items-center text-label-sm">
+<span>웹서핑</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-secondary w-[85%] h-full"></div></div>
+</div>
+<div class="flex justify-between items-center text-label-sm">
+<span>게임용</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-secondary w-[30%] h-full"></div></div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 border border-primary text-primary font-title-md py-2 rounded-lg hover:bg-primary/5">상세보기</button>
+<button class="material-symbols-outlined bg-primary text-on-primary p-2 rounded-lg">add_shopping_cart</button>
+</div>
+</div>
+<!-- Card 2: 추천형 (Active) -->
+<div class="bg-surface-main rounded-xl p-stack-md recommendation-active ring-2 ring-primary relative overflow-hidden">
+<div class="absolute top-0 right-0">
+<div class="bg-primary text-on-primary text-[10px] font-bold px-6 py-1 rotate-45 translate-x-4 translate-y-2 shadow-sm">AI 추천</div>
+</div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-primary text-on-primary font-label-sm rounded-lg">추천형</span>
+<span class="material-symbols-outlined text-success-confirm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="aspect-square bg-surface-bg rounded-lg mb-4 overflow-hidden relative group">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A premium mid-tower desktop PC with subtle blue LED lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1byt7g7P48D9Nlg_PYu_Q-zWurxhslEoYQrZ99tqxQOKVpwCniV2nNsjoLJbEdxunYMc-2eJKTCK3dao-G4BsHWXN3vylSnYe9lTn6tTVbEYoWjw7wmT6G4pZ8FZeasth1VGAKS9PtZa8kZfLsdZrRDfJ6kOfzhkVXUTmjHO_QGzFaDWkunkGqcrQ4OY4Xt-wIRcS246n0Ok6Lljh_KCIg40Qs5RUPNwcRrX_7pFzURoEAd9rsKgOk88Pycp8k2f3zyCjmjtUX8M"/>
+</div>
+<h3 class="font-title-md text-title-md mb-1">~1,050,000 KRW</h3>
+<p class="font-body-md text-on-surface-variant mb-4">성능과 가격의 밸런스가 뛰어난 구성</p>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm font-bold">
+<span class="material-symbols-outlined text-[18px] text-primary">dresser</span> Core i5-13400
+                </div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px]">memory</span> 16GB DDR5
+                </div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">view_in_ar</span> GTX 1650 GDDR6
+                </div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex justify-between items-center text-label-sm">
+<span>사무용</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-primary w-[98%] h-full"></div></div>
+</div>
+<div class="flex justify-between items-center text-label-sm">
+<span>웹서핑</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-primary w-[95%] h-full"></div></div>
+</div>
+<div class="flex justify-between items-center text-label-sm">
+<span>게임용</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-primary w-[55%] h-full"></div></div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary font-title-md py-2 rounded-lg hover:bg-primary-container">상세보기</button>
+<button class="material-symbols-outlined bg-primary-container text-on-primary-container p-2 rounded-lg">add_shopping_cart</button>
+</div>
+</div>
+<!-- Card 3: 고성능형 -->
+<div class="bg-surface-main rounded-xl p-stack-md border border-border-subtle hover:shadow-lg transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant font-label-sm rounded-lg">고성능형</span>
+<span class="material-symbols-outlined text-success-confirm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="aspect-square bg-surface-bg rounded-lg mb-4 overflow-hidden relative group">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A powerful, high-end workstation computer with a sleek black brushed metal finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbcobpc6cGizcpZr7t5Y6pQNEBnr1A5j8ZkLJvCFfFukKG7xPxJ91aRy_jRruJqmVWge7W9mO43a4vfE5jGCClba48yQzX4_Keqc9U4knJxh0RTECozXAebj4xm2r987BA1hGYFJow6jPpzfZXTnAXX02MRRWz_i1MhWHWtS7bldDOlU575BVozeTu5Eroqv_G_6I5QlZOIfmF20oZiPrhqew6JPiPRlyY3ybFeCSw6TQ22o8vaEQA3jtQIBX95GU1yxhPUhg3dwA"/>
+</div>
+<h3 class="font-title-md text-title-md mb-1">~1,180,000 KRW</h3>
+<p class="font-body-md text-on-surface-variant mb-4">멀티태스킹과 영상회의도 쾌적한 구성</p>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px]">dresser</span> Core i5-13600
+                </div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">memory</span> 32GB DDR5
+                </div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+<span class="material-symbols-outlined text-[18px]">view_in_ar</span> RTX 3050 8GB
+                </div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex justify-between items-center text-label-sm">
+<span>사무용</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-secondary w-[100%] h-full"></div></div>
+</div>
+<div class="flex justify-between items-center text-label-sm">
+<span>웹서핑</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-secondary w-[100%] h-full"></div></div>
+</div>
+<div class="flex justify-between items-center text-label-sm">
+<span>게임용</span> <div class="w-2/3 bg-surface-container h-1.5 rounded-full overflow-hidden"><div class="bg-secondary w-[75%] h-full"></div></div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 border border-primary text-primary font-title-md py-2 rounded-lg hover:bg-primary/5">상세보기</button>
+<button class="material-symbols-outlined bg-primary text-on-primary p-2 rounded-lg">add_shopping_cart</button>
+</div>
+</div>
+</section>
+<!-- Section 3: Detailed Visualization Area for 'Recommended' -->
+<div class="bg-white rounded-2xl shadow-sm border border-border-subtle overflow-hidden">
+<div class="bg-primary/5 px-stack-lg py-4 border-b border-border-subtle flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<h2 class="font-title-md text-primary">추천형 상세 리포트</h2>
+</div>
+<span class="text-label-sm text-on-surface-variant">분석 일시: 2024.05.20</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12">
+<!-- Left Col: PC Image + Reason -->
+<div class="lg:col-span-4 p-stack-lg border-b lg:border-b-0 lg:border-r border-border-subtle">
+<div class="aspect-[4/3] bg-surface-bg rounded-xl mb-6 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close-up of a high-quality desktop PC's interior." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIqhzOa70NO5brPnMlxTPnW2AQ7zccuMD3Yk9mpB4LZuNK6NGcsrBNYMhBU3xJRb96QnoFhEBY6s3cHr-HmPLIPp3vnI61wtDak_fWrbU7jKYgKC8lLZqAuPZ_KTWK1xH_JltWKh4KfKkLGpkFmhzhMMCLZtdpnxO8lcGcQDOM5eovnbShaQG_6BUPeLBPCysJ01zAy8zPUC1Yo2upYCKKq7sZ5D6mITDsXmfAwcVOIgC9sML47QEO6sPnsktF1IaSg9w5b1lEtjU"/>
+</div>
+<div class="bg-surface-container-low p-stack-md rounded-xl border-l-4 border-primary">
+<h4 class="font-title-md mb-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[20px]">psychology</span> AI 추천 이유
+                    </h4>
+<p class="font-body-md text-on-surface-variant leading-relaxed">
+                        "이 구성은 일반 업무와 재택 근무에 가장 최적화된 하드웨어 조합입니다. 13세대 i5 프로세서는 수십 개의 브라우저 탭과 엑셀 작업을 동시에 처리해도 끊김이 없으며, 전용 그래픽 카드를 탑재하여 장시간 화상 회의나 가벼운 영상 편집 작업에서도 안정적인 성능을 보장합니다."
+                    </p>
+</div>
+</div>
+<!-- Center Col: Performance & Price -->
+<div class="lg:col-span-4 p-stack-lg border-b lg:border-b-0 lg:border-r border-border-subtle space-y-stack-lg">
+<!-- Purpose Suitability -->
+<div>
+<h4 class="font-title-md mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">task_alt</span> 용도 적합도
+                    </h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-label-sm mb-1"><span>업무용</span> <span class="font-bold">95%</span></div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-primary w-[95%] h-full"></div></div>
+</div>
+<div>
+<div class="flex justify-between text-label-sm mb-1"><span>인터넷/영상 시청</span> <span class="font-bold">90%</span></div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-primary w-[90%] h-full"></div></div>
+</div>
+<div>
+<div class="flex justify-between text-label-sm mb-1"><span>게임용</span> <span class="font-bold">50%</span></div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-primary w-[50%] h-full"></div></div>
+</div>
+<div>
+<div class="flex justify-between text-label-sm mb-1"><span>전문 영상편집</span> <span class="font-bold">40%</span></div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-primary w-[40%] h-full"></div></div>
+</div>
+</div>
+</div>
+<!-- Price Breakdown -->
+<div>
+<h4 class="font-title-md mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">pie_chart</span> 가격 비중 분석
+                    </h4>
+<div class="h-8 flex rounded-full overflow-hidden mb-4">
+<div class="h-full bg-primary w-[25%]" title="CPU 25%"></div>
+<div class="h-full bg-secondary w-[20%]" title="GPU 20%"></div>
+<div class="h-full bg-surface-tint w-[15%]" title="RAM 15%"></div>
+<div class="h-full bg-tertiary w-[10%]" title="SSD 10%"></div>
+<div class="h-full bg-outline w-[30%]" title="기타 30%"></div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="flex items-center gap-2 text-label-sm"><span class="w-3 h-3 bg-primary rounded-full"></span> CPU (25%)</div>
+<div class="flex items-center gap-2 text-label-sm"><span class="w-3 h-3 bg-secondary rounded-full"></span> GPU (20%)</div>
+<div class="flex items-center gap-2 text-label-sm"><span class="w-3 h-3 bg-surface-tint rounded-full"></span> RAM (15%)</div>
+<div class="flex items-center gap-2 text-label-sm"><span class="w-3 h-3 bg-tertiary rounded-full"></span> Storage (10%)</div>
+</div>
+</div>
+</div>
+<!-- Right Col: Compatibility Check -->
+<div class="lg:col-span-4 p-stack-lg">
+<h4 class="font-title-md mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-success-confirm">verified</span> 하드웨어 호환성 체크
+                </h4>
+<div class="space-y-stack-sm">
+<div class="flex items-center justify-between p-3 bg-surface-bg rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">memory</span>
+<span class="font-body-md">CPU / 메인보드</span>
+</div>
+<span class="text-success-confirm font-bold text-label-sm flex items-center gap-1">정상 <span class="material-symbols-outlined text-[16px]">check</span></span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-bg rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">developer_board</span>
+<span class="font-body-md">메모리 규격</span>
+</div>
+<span class="text-success-confirm font-bold text-label-sm flex items-center gap-1">정상 <span class="material-symbols-outlined text-[16px]">check</span></span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-bg rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">bolt</span>
+<span class="font-body-md">전력 공급량</span>
+</div>
+<span class="text-success-confirm font-bold text-label-sm flex items-center gap-1">정상 <span class="material-symbols-outlined text-[16px]">check</span></span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-bg rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">straighten</span>
+<span class="font-body-md">케이스 규격</span>
+</div>
+<span class="text-success-confirm font-bold text-label-sm flex items-center gap-1">정상 <span class="material-symbols-outlined text-[16px]">check</span></span>
+</div>
+</div>
+<div class="mt-8 bg-success-confirm/5 p-4 rounded-xl border border-success-confirm/20 text-center">
+<p class="font-body-md text-success-confirm font-bold mb-2">모든 부품의 호환성이 확인되었습니다.</p>
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-title-md hover:bg-primary-container transition-all">이 구성으로 장바구니 담기</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface dark:bg-on-background w-full border-t border-outline-variant/20 mt-stack-lg">
+<div class="flex flex-col md:flex-row justify-between items-center py-stack-lg px-gutter max-w-container-max mx-auto gap-stack-md">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-title-md text-title-md text-surface-main">PoPcornPC AI</span>
+<p class="font-body-md text-body-md text-surface-variant/80 text-center md:text-left max-w-md">
+                © 2024 PoPcornPC AI. 모든 하드웨어 성능 데이터는 벤치마크 기반 추정치입니다.
+            </p>
+</div>
+<div class="flex flex-wrap justify-center gap-stack-md">
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-surface-main underline transition-colors duration-200" href="#">회사정보</a>
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-surface-main underline transition-colors duration-200" href="#">이용약관</a>
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-surface-main underline transition-colors duration-200" href="#">개인정보처리방침</a>
+<a class="font-body-md text-body-md text-surface-variant/80 hover:text-surface-main underline transition-colors duration-200" href="#">하드웨어 고지사항</a>
+</div>
+</div>
+</footer>
+<script>
+    document.querySelectorAll('.recommendation-active').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+</script>
+</body></html>
