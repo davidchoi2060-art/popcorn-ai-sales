@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB 연결 테스트 - 팝콘 AI</title>
+    <link rel="stylesheet" href="../../assets/css/popcornai-framework.css">
+
+    <style>
+        :root {
+            --color-success: #10b981;
+            --color-error: #ef4444;
+            --color-warning: #f59e0b;
+            --color-info: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: var(--spacer-6);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--color-white);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacer-6);
+            box-shadow: var(--shadow-2xl);
+            margin-bottom: var(--spacer-6);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: var(--spacer-6);
+            padding-bottom: var(--spacer-4);
+            border-bottom: 2px solid var(--color-gray-200);
+        }
+
+        header h1 {
+            font-size: var(--font-size-3xl);
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacer-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacer-2);
+        }
+
+        header p {
+            color: var(--color-gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        .section-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-gray-800);
+            margin-bottom: var(--spacer-4);
+            display: flex;
+            align-items: center;
+            gap: var(--spacer-2);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--spacer-4);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacer-3);
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-gray-700);
+            margin-bottom: var(--spacer-1);
+            font-size: var(--font-size-sm);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: var(--spacer-2) var(--spacer-3);
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--border-radius-base);
+            font-size: var(--font-size-base);
+            transition: var(--transition-base);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacer-2);
+            padding: var(--spacer-2) var(--spacer-5);
+            border: none;
+            border-radius: var(--border-radius-base);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--color-gray-200);
+            color: var(--color-gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-gray-300);
+        }
+
+        .btn-sm {
+            padding: var(--spacer-1) var(--spacer-3);
+            font-size: var(--font-size-xs);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 연결 상태 카드 */
+        .connection-status {
+            padding: var(--spacer-4);
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--spacer-6);
+            display: none;
+        }
+
+        .connection-status.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .connection-status.success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid var(--color-success);
+        }
+
+        .connection-status.error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 2px solid var(--color-error);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacer-3);
+        }
+
+        .status-icon {
+            font-size: 32px;
+        }
+
+        .status-info {
+            flex: 1;
+            margin-left: var(--spacer-4);
+        }
+
+        .status-info h3 {
+            margin: 0 0 var(--spacer-1) 0;
+            font-size: var(--font-size-lg);
+        }
+
+        .status-info p {
+            margin: 0;
+            color: var(--color-gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        .status-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacer-3);
+            margin-top: var(--spacer-3);
+            padding-top: var(--spacer-3);
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-item .label {
+            font-size: var(--font-size-xs);
+            color: var(--color-gray-500);
+        }
+
+        .status-item .value {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-gray-800);
+        }
+
+        /* 테이블 목록 */
+        .tables-section {
+            margin-top: var(--spacer-6);
+            display: none;
+        }
+
+        .tables-section.show {
+            display: block;
+        }
+
+        .tables-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacer-4);
+            padding: var(--spacer-3);
+            background: var(--color-gray-50);
+            border-radius: var(--border-radius-base);
+        }
+
+        .tables-count {
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-gray-700);
+        }
+
+        .table-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacer-3);
+            max-height: 400px;
+            overflow-y: auto;
+            padding: var(--spacer-2);
+        }
+
+        .table-item {
+            padding: var(--spacer-3);
+            background: var(--color-white);
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--border-radius-base);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .table-item:hover {
+            border-color: var(--color-primary);
+            background: var(--color-gray-50);
+        }
+
+        .table-item.selected {
+            border-color: var(--color-primary);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .table-item .table-name {
+            font-weight: var(--font-weight-bold);
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacer-1);
+            display: flex;
+            align-items: center;
+            gap: var(--spacer-2);
+        }
+
+        .table-item .table-meta {
+            font-size: var(--font-size-xs);
+            color: var(--color-gray-500);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table-item .row-count {
+            background: var(--color-gray-100);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* 데이터 뷰어 */
+        .data-viewer {
+            margin-top: var(--spacer-6);
+            display: none;
+        }
+
+        .data-viewer.show {
+            display: block;
+        }
+
+        .viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacer-4);
+            background: var(--color-gray-800);
+            color: var(--color-white);
+            border-radius: var(--border-radius-base) var(--border-radius-base) 0 0;
+        }
+
+        .viewer-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacer-2);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .viewer-controls {
+            display: flex;
+            gap: var(--spacer-2);
+            align-items: center;
+        }
+
+        .viewer-controls select,
+        .viewer-controls input {
+            padding: var(--spacer-1) var(--spacer-2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: var(--border-radius-base);
+            background: rgba(255,255,255,0.1);
+            color: var(--color-white);
+            font-size: var(--font-size-sm);
+        }
+
+        .viewer-controls select option {
+            background: var(--color-gray-800);
+        }
+
+        .data-table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--color-gray-300);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+
+        .data-table th {
+            background: var(--color-gray-100);
+            padding: var(--spacer-2) var(--spacer-3);
+            text-align: left;
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-gray-700);
+            border-bottom: 2px solid var(--color-gray-300);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: var(--spacer-2) var(--spacer-3);
+            border-bottom: 1px solid var(--color-gray-200);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .data-table tr:hover {
+            background: var(--color-gray-50);
+        }
+
+        .data-table td.null {
+            color: var(--color-gray-400);
+            font-style: italic;
+        }
+
+        .data-table td.number {
+            text-align: right;
+            font-family: monospace;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacer-3);
+            background: var(--color-gray-50);
+            border: 1px solid var(--color-gray-300);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+        }
+
+        .pagination-info {
+            color: var(--color-gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: var(--spacer-2);
+        }
+
+        .pagination-btn {
+            padding: var(--spacer-1) var(--spacer-3);
+            background: var(--color-white);
+            border: 1px solid var(--color-gray-300);
+            border-radius: var(--border-radius-base);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-color: var(--color-primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: var(--spacer-8);
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--spacer-4);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error */
+        .error-message {
+            padding: var(--spacer-4);
+            background: var(--color-error);
+            color: var(--color-white);
+            border-radius: var(--border-radius-base);
+            margin: var(--spacer-4) 0;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacer-2);
+            color: var(--color-white);
+            text-decoration: none;
+            padding: var(--spacer-2) var(--spacer-4);
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius-base);
+            transition: var(--transition-base);
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* No data */
+        .no-data {
+            text-align: center;
+            padding: var(--spacer-8);
+            color: var(--color-gray-500);
+        }
+
+        .no-data-icon {
+            font-size: 48px;
+            margin-bottom: var(--spacer-4);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .status-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .viewer-header {
+                flex-direction: column;
+                gap: var(--spacer-3);
+            }
+
+            .viewer-controls {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <header>
+                <h1>🗄️ DB 연결 및 데이터 뷰어</h1>
+                <p>PostgreSQL 데이터베이스 연결, 테이블 목록 조회, 데이터 탐색</p>
+            </header>
+
+            <!-- 연결 설정 폼 -->
+            <div id="connectionFormSection">
+                <h2 class="section-title">📡 연결 설정</h2>
+                <form id="dbTestForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="host">호스트 (Host)</label>
+                            <input type="text" id="host" name="host" value="localhost" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="port">포트 (Port)</label>
+                            <input type="number" id="port" name="port" value="5432" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="database">데이터베이스 (Database)</label>
+                            <input type="text" id="database" name="database" value="popcorn_pc" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username">사용자명 (Username)</label>
+                            <input type="text" id="username" name="username" value="postgres" required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="password">비밀번호 (Password)</label>
+                            <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sslmode">SSL 모드</label>
+                            <input type="text" id="sslmode" name="sslmode" value="disable" placeholder="disable">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="connectBtn">
+                        <span>🔗</span>
+                        <span>연결</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 연결 상태 -->
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-header">
+                    <span class="status-icon" id="statusIcon">✅</span>
+                    <div class="status-info">
+                        <h3 id="statusTitle">연결 성공</h3>
+                        <p id="statusMessage">데이터베이스에 연결되었습니다</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="resetConnection()">🔄 재연결</button>
+                </div>
+                <div class="status-details" id="statusDetails"></div>
+            </div>
+
+            <!-- 로딩 -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>처리 중...</p>
+            </div>
+
+            <!-- 오류 메시지 -->
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <!-- 테이블 목록 섹션 -->
+        <div class="card tables-section" id="tablesSection">
+            <h2 class="section-title">📋 테이블 목록</h2>
+            <div class="tables-toolbar">
+                <span class="tables-count" id="tablesCount">총 0개 테이블</span>
+                <button class="btn btn-secondary btn-sm" onclick="loadTables()">🔄 새로고침</button>
+            </div>
+            <div class="table-list" id="tableList">
+                <div class="no-data">
+                    <div class="no-data-icon">📦</div>
+                    <p>테이블이 없습니다</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 데이터 뷰어 -->
+        <div class="card data-viewer" id="dataViewer">
+            <div class="viewer-header">
+                <div class="viewer-title">
+                    <span>📊</span>
+                    <span id="viewerTableName">테이블 데이터</span>
+                </div>
+                <div class="viewer-controls">
+                    <label>페이지당 행:</label>
+                    <select id="pageSize" onchange="changePageSize()">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="200">200</option>
+                    </select>
+                    <span id="paginationInfo">0-0 / 0</span>
+                </div>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="dataTable">
+                    <thead id="dataTableHead"></thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <div class="pagination-info" id="totalCount">총 0개 행</div>
+                <div class="pagination-controls">
+                    <button class="pagination-btn" id="firstPageBtn" onclick="goToPage(0)">««</button>
+                    <button class="pagination-btn" id="prevPageBtn" onclick="prevPage()">«</button>
+                    <button class="pagination-btn" id="nextPageBtn" onclick="nextPage()">»</button>
+                    <button class="pagination-btn" id="lastPageBtn" onclick="goToLastPage()">»»</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: var(--spacer-4);">
+            <a href="../index.html" class="back-link">
+                <span>←</span>
+                <span>대시보드로 돌아가기</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 상태 관리
+        let connectionConfig = null;
+        let currentTable = null;
+        let currentPage = 0;
+        let pageSize = 100;
+        let totalRows = 0;
+
+        // API 기본 URL
+        const API_BASE = 'http://localhost:8000/api/db-test';
+
+        // 폼 제출 - 연결 테스트
+        document.getElementById('dbTestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await connectDatabase();
+        });
+
+        // 데이터베이스 연결
+        async function connectDatabase() {
+            const formData = {
+                host: document.getElementById('host').value,
+                port: parseInt(document.getElementById('port').value),
+                database: document.getElementById('database').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                sslmode: document.getElementById('sslmode').value || 'disable'
+            };
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const response = await fetch(`${API_BASE}/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                showLoading(false);
+
+                if (data.success) {
+                    connectionConfig = formData;
+                    showConnectionSuccess(data);
+                    loadTables();
+                } else {
+                    showConnectionError(data.message);
+                }
+            } catch (error) {
+                showLoading(false);
+                showError('API 서버에 연결할 수 없습니다. uvicorn 서버가 실행 중인지 확인하세요.');
+            }
+        }
+
+        // 연결 성공 표시
+        function showConnectionSuccess(data) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.classList.add('show', 'success');
+            statusEl.classList.remove('error');
+
+            document.getElementById('statusIcon').textContent = '✅';
+            document.getElementById('statusTitle').textContent = '연결 성공!';
+            document.getElementById('statusMessage').textContent = data.message;
+
+            document.getElementById('statusDetails').innerHTML = `
+                <div class="status-item">
+                    <div class="label">호스트</div>
+                    <div class="value">${connectionConfig.host}:${connectionConfig.port}</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">데이터베이스</div>
+                    <div class="value">${data.current_database || connectionConfig.database}</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">사용자</div>
+                    <div class="value">${data.current_user || connectionConfig.username}</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">버전</div>
+                    <div class="value">${(data.server_version || '').split(' ')[1] || 'N/A'}</div>
+                </div>
+            `;
+
+            document.getElementById('tablesSection').classList.add('show');
+            document.getElementById('connectionFormSection').style.display = 'none';
+        }
+
+        // 연결 실패 표시
+        function showConnectionError(message) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.classList.add('show', 'error');
+            statusEl.classList.remove('success');
+
+            document.getElementById('statusIcon').textContent = '❌';
+            document.getElementById('statusTitle').textContent = '연결 실패';
+            document.getElementById('statusMessage').textContent = message;
+            document.getElementById('statusDetails').innerHTML = '';
+        }
+
+        // 테이블 목록 로드
+        async function loadTables() {
+            if (!connectionConfig) return;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/tables`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(connectionConfig)
+                });
+
+                const data = await response.json();
+                showLoading(false);
+
+                if (data.success) {
+                    renderTables(data.tables);
+                } else {
+                    showError('테이블 목록 조회 실패: ' + (data.error || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                showLoading(false);
+                showError('테이블 목록을 불러올 수 없습니다.');
+            }
+        }
+
+        // 테이블 목록 렌더링
+        function renderTables(tables) {
+            const tableListEl = document.getElementById('tableList');
+            const tablesCountEl = document.getElementById('tablesCount');
+
+            tablesCountEl.textContent = `총 ${tables.length}개 테이블`;
+
+            if (tables.length === 0) {
+                tableListEl.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">📦</div>
+                        <p>테이블이 없습니다</p>
+                    </div>
+                `;
+                return;
+            }
+
+            tableListEl.innerHTML = tables.map(table => `
+                <div class="table-item ${currentTable === table.name ? 'selected' : ''}"
+                     onclick="selectTable('${table.name}')"
+                     data-table="${table.name}">
+                    <div class="table-name">
+                        <span>📋</span>
+                        <span>${table.name}</span>
+                    </div>
+                    <div class="table-meta">
+                        <span>${table.table_schema}</span>
+                        <span class="row-count">${formatNumber(table.row_count)}행</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 테이블 선택
+        async function selectTable(tableName) {
+            currentTable = tableName;
+            currentPage = 0;
+
+            // 선택 상태 업데이트
+            document.querySelectorAll('.table-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.table === tableName) {
+                    item.classList.add('selected');
+                }
+            });
+
+            // 데이터 로드
+            await loadTableData();
+        }
+
+        // 테이블 데이터 로드
+        async function loadTableData() {
+            if (!connectionConfig || !currentTable) return;
+
+            showLoading(true);
+            hideError();
+
+            const dataViewerEl = document.getElementById('dataViewer');
+            dataViewerEl.classList.add('show');
+
+            try {
+                const response = await fetch(`${API_BASE}/table-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...connectionConfig,
+                        table_name: currentTable,
+                        limit: pageSize,
+                        offset: currentPage * pageSize
+                    })
+                });
+
+                const data = await response.json();
+                showLoading(false);
+
+                if (data.success) {
+                    document.getElementById('viewerTableName').textContent = currentTable;
+                    renderDataTable(data);
+                } else {
+                    showError('데이터 조회 실패: ' + (data.error || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                showLoading(false);
+                showError('데이터를 불러올 수 없습니다.');
+            }
+        }
+
+        // 데이터 테이블 렌더링
+        function renderDataTable(data) {
+            const theadEl = document.getElementById('dataTableHead');
+            const tbodyEl = document.getElementById('dataTableBody');
+
+            // 헤더
+            theadEl.innerHTML = `<tr>${data.columns.map(col =>
+                `<th>${col.name}<br><small style="color:var(--color-gray-500)">${col.type}</small></th>`
+            ).join('')}</tr>`;
+
+            // 바디
+            if (data.rows.length === 0) {
+                tbodyEl.innerHTML = `<tr><td colspan="${data.columns.length}" style="text-align:center;padding:40px;color:var(--color-gray-500)">데이터가 없습니다</td></tr>`;
+            } else {
+                tbodyEl.innerHTML = data.rows.map(row => `<tr>${data.columns.map(col => {
+                    const value = row[col.name];
+                    const isNull = value === null || value === undefined;
+                    const isNumber = typeof value === 'number';
+                    return `<td class="${isNull ? 'null' : ''} ${isNumber ? 'number' : ''}" title="${isNull ? '' : value}">${isNull ? 'NULL' : value}</td>`;
+                }).join('')}</tr>`).join('');
+            }
+
+            // 페이지네이션 업데이트
+            totalRows = data.total_count;
+            updatePagination();
+        }
+
+        // 페이지네이션 업데이트
+        function updatePagination() {
+            const start = currentPage * pageSize + 1;
+            const end = Math.min((currentPage + 1) * pageSize, totalRows);
+
+            document.getElementById('paginationInfo').textContent = `${start}-${end} / ${totalRows}`;
+            document.getElementById('totalCount').textContent = `총 ${formatNumber(totalRows)}개 행`;
+
+            const totalPages = Math.ceil(totalRows / pageSize) || 1;
+            document.getElementById('firstPageBtn').disabled = currentPage === 0;
+            document.getElementById('prevPageBtn').disabled = currentPage === 0;
+            document.getElementById('nextPageBtn').disabled = currentPage >= totalPages - 1;
+            document.getElementById('lastPageBtn').disabled = currentPage >= totalPages - 1;
+        }
+
+        // 페이지 이동
+        function goToPage(page) {
+            currentPage = page;
+            loadTableData();
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadTableData();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(totalRows / pageSize) || 1;
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadTableData();
+            }
+        }
+
+        function goToLastPage() {
+            currentPage = Math.ceil(totalRows / pageSize) - 1;
+            loadTableData();
+        }
+
+        // 페이지 크기 변경
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSize').value);
+            currentPage = 0;
+            loadTableData();
+        }
+
+        // 연결 초기화
+        function resetConnection() {
+            connectionConfig = null;
+            currentTable = null;
+            currentPage = 0;
+
+            document.getElementById('connectionStatus').classList.remove('show');
+            document.getElementById('tablesSection').classList.remove('show');
+            document.getElementById('dataViewer').classList.remove('show');
+            document.getElementById('connectionFormSection').style.display = 'block';
+            document.getElementById('dbTestForm').reset();
+
+            // 기본값 복원
+            document.getElementById('host').value = 'localhost';
+            document.getElementById('port').value = '5432';
+            document.getElementById('database').value = 'popcorn_pc';
+            document.getElementById('username').value = 'postgres';
+        }
+
+        // 유틸리티
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+    </script>
+</body>
+</html>

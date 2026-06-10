@@ -5,7 +5,7 @@ FastAPI 애플리케이션 진입점
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import recommend
+from app.routers import recommend, db_test
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -25,6 +25,7 @@ app.add_middleware(
 
 # 라우터 등록
 app.include_router(recommend.router, prefix="/api")
+app.include_router(db_test.router, prefix="/api")
 
 # 루트 엔드포인트
 @app.get("/")
@@ -35,7 +36,8 @@ async def root():
         "version": "0.1.0",
         "endpoints": {
             "recommend": "POST /api/recommend",
-            "health": "GET /api/recommend/health",
+            "db-test": "POST /api/db-test/connect",
+            "health": "GET /api/db-test/health",
             "docs": "/docs",
             "redoc": "/redoc"
         }
