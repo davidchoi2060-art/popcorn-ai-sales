@@ -433,6 +433,42 @@
                 </ul>
             </div>
         </div>
+<div style="padding: 20px; border: 2px solid #005daa; margin: 30px auto; max-width: 800px; border-radius: 8px; background: #f7f9fc; font-family: sans-serif; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h3 style="color: #005daa; margin-top: 0;">🛠️ 우분투 개발서버 DB 통신 테스트</h3>
+    <button id="dbTestBtn" style="padding: 12px 24px; background: #0075d5; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
+        DB에게 인사 건네기 (연결 테스트)
+    </button>
+    <p id="dbResultText" style="margin-top: 15px; font-weight: bold; color: #555; font-size: 15px;">버튼을 누르면 우분투 PostgreSQL DB 상태가 여기에 실시간 출력됩니다.</p>
+</div>
+
+<script>
+    document.getElementById('dbTestBtn').addEventListener('click', function() {
+        const resultText = document.getElementById('dbResultText');
+        resultText.style.color = "#555";
+        resultText.innerText = "🔄 우분투 백엔드(3000포트)를 통해 DB 문을 두드리는 중...";
+
+        // 현재 우분투 서버 내부에서 일하고 있는 백엔드 API 서버 주소로 통신
+        fetch('http://100.123.164.85:3000/api/db-test')
+            .then(response => {
+                if(!response.ok) throw new Error("백엔드 프로그램이 응답하지 않습니다.");
+                return response.json();
+            })
+            .then(data => {
+                if(data.status === "Success") {
+                    resultText.style.color = "green";
+                    resultText.innerHTML = `⭕ <b>${data.message}</b><br><span style="font-size: 13px; color: #666; font-weight: normal;">🕒 DB 실시간 응답 시간: ${data.dbTime}</span>`;
+                } else {
+                    resultText.style.color = "red";
+                    resultText.innerHTML = `❌ <b>DB 연결 실패:</b> ${data.message}`;
+                }
+            })
+            .catch(error => {
+                resultText.style.color = "red";
+                resultText.innerHTML = `⚠️ <b>통신 에러:</b> 백엔드 프로그램(node server.js)이 우분투 서버에서 켜져 있는지 확인하세요!`;
+            });
+    });
+</script>
+
 
         <footer class="footer">
             <p>🍿 팝콘 AI 프로토타입 대시보드 | 개발 환경용 페이지 모음</p>
