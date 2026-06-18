@@ -1,0 +1,152 @@
+# 06. DB 설계 (ERD & 스키마)
+
+**파일 경로:** `_docs/06_db-erd.md`
+**문서 버전:** Ver 1.0
+**DBMS:** PostgreSQL (DB명 `popcorn_pc`)
+**선행 문서:** `00_glossary.md`, 상품 CSV(`00.상품다운.csv`)
+
+## 1. 설계 원칙
+
+원본 CSV는 쇼핑몰 운영용 컬럼이 많아 그대로 쓰면 추천 연산에 비효율적이다. 따라서 두 층으로 나눈다. 첫째, **원본 보존층**(`products`)은 CSV 컬럼을 최대한 손실 없이 받아 Upsert의 기준(자체상품코드 PK)으로 삼는다. 둘째, **AI 연산층**(`product_specs`)은 추천·호환성 연산에 필요한 정형 필드(소켓·전력 W·치수 mm·감성 태그)를 분리해, 비정형 `스펙` 문자열에서 추출·정제한 값을 담는다. 이렇게 하면 CSV 재업로드 시 원본은 덮어쓰되 연산 필드는 관리자가 보강한 값을 보존할 수 있다.
+
+## 2. ERD 개요
+
+```
+users ──< logs >── (참조) products
+  │                            │
+  │                            ├──1:1── product_specs   (AI 연산 필드)
+  │                            └──N:1── categories       (분류·마진정책)
+  │
+rate_limits >── users (등급/IP별 한도)
+recommendations ──< recommendation_items >── products
+policy_weights (전역 가중치 단일 행)
+api_cost_logs (3사 비용 집계)
+compat_rules (호환성 규칙 테이블)
+```
+
+## 3. 핵심 테이블 — products (CSV 매핑)
+
+CSV 컬럼을 1:1로 매핑한다. PK는 `자체상품코드`다.
+
+| 컬럼명 | 타입 | CSV 원본 | 비고 |
+|--------|------|---------|------|
+| product_code | BIGINT PK | 자체상품코드 | Upsert 기준 |
+| unified_code | BIGINT | 통합상품코드 | |
+| model_name | VARCHAR(255) | 모델명 | |
+| product_name | VARCHAR(500) | 상품명 | |
+| maker | VARCHAR(100) | 제조사 | |
+| category1 | VARCHAR(100) | 카테고리1 | 대분류 |
+| category2 | VARCHAR(100) | 카테고리2 | 중분류(추천 핵심) |
+| category3 | VARCHAR(100) | 카테고리3 | |
+| category4 | VARCHAR(100) | 카테고리4 | |
+| status | VARCHAR(20) | 상태값 | 판매중/품절/단종/삭제대기 |
+| purchase_price | INTEGER | 매입가 | |
+| order_price | INTEGER | 발주가 | |
+| supplier | VARCHAR(200) | 공급처 | |
+| market_price | INTEGER | 시중가 | |
+| member_price | INTEGER | 일반회원 | 표시가 |
+| dealer_lv1~3 | INTEGER | 딜러Lv1~3 | |
+| guide_price_now | INTEGER | 지도가현 | |
+| guide_price_card | INTEGER | 지도가카 | |
+| danawa_no | VARCHAR(50) | 다나와No | |
+| enuri_no | VARCHAR(50) | 에누리No | |
+| spec_raw | TEXT | 스펙 | 비정형 원문(연산 추출 원천) |
+| ship_fee | INTEGER | 택배비 | |
+| free_ship | VARCHAR(20) | 무료여부 | |
+| cert_no1 | VARCHAR(100) | 인증코드번호1 | |
+| cert_no2 | VARCHAR(100) | 인증코드번호2 | |
+| created_at | TIMESTAMP | (자동) | |
+| updated_at | TIMESTAMP | (자동) | Upsert 시 갱신 |
+
+CSV에서 관찰된 카테고리 표기 혼선(`삭제대기`, `그래픽카드ㅇㅇㅇ`, `ㄴ` 등 비정상 분류)은 정제 단계에서 `categories` 매핑 테이블로 표준화한다. 또한 동일 상품코드(예: 100111)가 중복 적재된 행이 있으므로, Upsert 시 PK 중복은 마지막 값으로 덮어쓰되 중복 건은 로그로 분리한다.
+
+## 4. AI 연산층 — product_specs (1:1)
+
+비정형 `spec_raw`에서 추출하거나 관리자가 직접 입력하는 정형 필드다. 추천·호환성·물리 시뮬레이션의 입력이 된다.
+
+| 컬럼명 | 타입 | 의미 | 출처 |
+|--------|------|------|------|
+| product_code | BIGINT PK FK | products 참조 | |
+| part_type | VARCHAR(30) | CPU/GPU/RAM/SSD/MB/POWER/COOLER/CASE | category 정제 |
+| socket | VARCHAR(30) | 소켓 규격(AM5, LGA1700 등) | 호환성 |
+| chipset | VARCHAR(50) | 칩셋(B650, Z790 등) | 호환성 |
+| mem_type | VARCHAR(10) | DDR4/DDR5 | 호환성 |
+| tdp_watt | INTEGER | 소비/설계 전력(W) | 전력 마진 |
+| rated_watt | INTEGER | (파워) 정격 출력 W | 전력 마진 |
+| length_mm | INTEGER | (GPU) 가로 길이 mm | 물리 충돌 |
+| gpu_max_mm | INTEGER | (케이스) GPU 장착 한계 mm | 물리 충돌 |
+| cooler_tdp | INTEGER | (쿨러) 해소 가능 TDP | 쿨링 마진 |
+| pcie_gen | VARCHAR(10) | (SSD) PCIe 4.0/5.0 | 규격 |
+| tag_white | BOOLEAN | #화이트감성 | 감성 매칭 |
+| tag_rgb | BOOLEAN | #화려한LED | 감성 매칭 |
+| tag_silent | BOOLEAN | #저소음 | 감성 매칭 |
+| margin_locked | BOOLEAN | 관리자 보강값 보존 여부 | Upsert 보호 |
+
+`margin_locked = true`인 행은 CSV 재업로드 시 연산 필드를 덮어쓰지 않아, 관리자가 손으로 채운 소켓·전력·치수 값이 유지된다.
+
+## 5. 사용자·로그 테이블
+
+### 5.1 users
+회원 정보는 기존 쇼핑몰과 SSO 공유하므로, 본 DB에는 추천 서비스에 필요한 최소 정보만 둔다.
+
+| 컬럼 | 타입 | 의미 |
+|------|------|------|
+| user_id | BIGINT PK | 쇼핑몰 회원번호(SSO 매핑) |
+| grade | VARCHAR(20) | 일반/우수/딜러 |
+| guest_uid | VARCHAR(50) | 비회원 임시 UID |
+| created_at | TIMESTAMP | |
+
+### 5.2 logs (유저 저니·프롬프트·AI응답)
+명세서 요구대로 대량 적재되며 복합 인덱스로 고속 조회한다.
+
+| 컬럼 | 타입 | 의미 |
+|------|------|------|
+| log_id | BIGSERIAL PK | |
+| user_id | BIGINT FK | 회원/게스트 |
+| event_type | VARCHAR(30) | 진입/입력완료/추천요청/클릭/스왑제외/장바구니/결제 |
+| mode | VARCHAR(10) | beginner/expert |
+| prompt_raw | TEXT | PII 마스킹 후 원시 프롬프트 |
+| api_model | VARCHAR(20) | gemini/chatgpt/claude |
+| in_tokens | INTEGER | 인바운드 토큰 |
+| out_tokens | INTEGER | 아웃바운드 토큰 |
+| response_ms | INTEGER | 응답 시간 |
+| swap_from / swap_to | BIGINT | 스왑 제외/대체 부품코드 |
+| created_at | TIMESTAMP | |
+
+## 6. 정책·추천·비용 테이블
+
+`policy_weights`는 전역 가중치를 담는 단일 행 테이블로 재고소진·마진극대·가성비 비중(%)을 저장한다(dev_index 슬라이더와 연동). `rate_limits`는 등급별/IP별 일일 한도를 저장한다. `recommendations`와 `recommendation_items`는 확정된 견적과 부품 구성을 보관한다. `api_cost_logs`는 모델별 일일 누적 토큰·달러 비용을 집계해 Circuit Breaker가 참조한다. `compat_rules`는 소켓-메모리, 파워-전력 같은 호환성 규칙을 테이블로 관리해 검증 엔진이 조회한다.
+
+## 7. 복합 인덱스 설계 (성능 강제)
+
+명세서 NFR-ADM-010이 요구한 대로, 대량 로그·상품 조회 성능을 위해 복합 인덱스를 강제한다.
+
+```sql
+-- logs: 10만건+ 조건 검색 0.5초 이내 (created_at, user_id, api_model)
+CREATE INDEX idx_logs_composite ON logs (created_at DESC, user_id, api_model);
+CREATE INDEX idx_logs_event ON logs (event_type, created_at DESC);
+
+-- products: 카테고리+상태+키워드 검색 0.3초 이내 (master.html)
+CREATE INDEX idx_products_search ON products (category2, status);
+CREATE INDEX idx_products_name_trgm ON products USING gin (product_name gin_trgm_ops); -- 키워드 LIKE
+
+-- 추천 엔진: 판매중 상품 빠른 매칭
+CREATE INDEX idx_specs_parttype ON product_specs (part_type) WHERE part_type IS NOT NULL;
+
+-- 비용 집계
+CREATE INDEX idx_cost_daily ON api_cost_logs (cost_date, api_model);
+```
+
+키워드 검색(예: "RTX")은 `pg_trgm` 확장의 GIN 인덱스로 부분 일치를 고속 처리한다.
+
+## 8. 품절 실시간 반영 (트리거 연동)
+
+FR-ADM-050 요구대로, `products.status`가 `품절`/`단종`으로 바뀌면 1초 이내에 추천 풀·스왑 대안에서 제외되어야 한다. 이를 위해 추천·스왑 쿼리는 항상 `WHERE status = '판매중'` 조건을 강제하고, 상태 변경 시 캐시(인메모리/Redis)에 무효화 신호를 보내는 구조로 설계한다. 별도 배치가 아니라 쿼리 조건과 캐시 무효화로 즉시성을 보장한다.
+
+## 9. 마이그레이션·시드 정책
+
+테이블 생성 SQL은 `app/db/migrations/`에 순번을 붙여 관리한다(`001_create_products.sql` 등). 초기 시드는 `_mock/products-seed.csv`(업로드 CSV 정제본)를 `app/db/seeds/`로 적재한다. 개발 초기에는 Redis 없이 PostgreSQL + 인메모리 카운터로 단순화하고, 트래픽 증가 시 `rate_limits`·캐시 무효화를 Redis로 이관한다(8단계 아키텍처에서 상세화).
+
+---
+
+7단계 산출물이 완성되었습니다. CSV의 모든 컬럼을 `products`로 매핑하고, 추천에 꼭 필요한 연산 필드를 `product_specs`로 분리했으며, logs·users·정책·비용·호환성 테이블과 명세가 요구한 복합 인덱스(0.5초/0.3초 성능), 품절 즉시 반영 구조까지 설계했습니다.

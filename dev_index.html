@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POPCORN PC AI DEVELOPER - 미션 컨트롤</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#414752",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-primary-container": "#fdfbff",
+                        "inverse-on-surface": "#eff1f4",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-surface": "#191c1e",
+                        "surface-container": "#eceef1",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#bc5700",
+                        "status-pending": "#ffb300",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#e2dfde",
+                        "inverse-primary": "#a5c8ff",
+                        "surface-variant": "#e0e3e6",
+                        "inverse-surface": "#2d3133",
+                        "line": "#e0e0e0",
+                        "background": "#f7f9fc",
+                        "tertiary-fixed": "#ffdbc9",
+                        "surface-container-high": "#e6e8eb",
+                        "outline-variant": "#c1c7d4",
+                        "primary-container": "#0075d5",
+                        "status-progress": "#0075d5",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f7f9fc",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "on-tertiary-fixed": "#321200",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "surface": "#f7f9fc",
+                        "text-strong": "#1a1a1a",
+                        "secondary": "#5f5e5e",
+                        "on-tertiary-fixed-variant": "#753400",
+                        "on-secondary-container": "#636262",
+                        "on-background": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#e0e3e6",
+                        "primary": "#005caa",
+                        "surface-dim": "#d8dadd",
+                        "text-sub": "#888888",
+                        "on-primary-fixed-variant": "#004785",
+                        "error": "#d32f2f",
+                        "tertiary-fixed-dim": "#ffb68c",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#005faf",
+                        "text-body": "#333333",
+                        "outline": "#717784",
+                        "primary-fixed": "#d4e3ff",
+                        "surface-container-low": "#f2f4f7",
+                        "status-complete": "#2e7d32",
+                        "tertiary": "#964400",
+                        "on-primary-fixed": "#001c3a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "0.5rem",
+                        "stack-lg": "2rem",
+                        "gutter": "1.5rem",
+                        "margin-page": "2rem",
+                        "header-height": "64px",
+                        "sidebar-width": "240px",
+                        "stack-md": "1rem"
+                    },
+                    "fontFamily": {
+                        "number": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "h2": ["Hanken Grotesk"],
+                        "display": ["Hanken Grotesk"],
+                        "h1": ["Hanken Grotesk"],
+                        "caption": ["Hanken Grotesk"],
+                        "body": ["Hanken Grotesk"],
+                        "button": ["Hanken Grotesk"],
+                        "h3": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "number": ["24px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h2": ["22px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "display": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "h1": ["28px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "caption": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "body": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "button": ["15px", {"lineHeight": "1", "fontWeight": "600"}],
+                        "h3": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #f7f9fc; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid #e0e0e0; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c7d4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #717784; }
+    </style>
+</head>
+<body class="text-on-surface" data-domain="developer" data-screen-id="FR-DEV-010">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 w-full h-header-height flex justify-between items-center px-gutter bg-surface dark:bg-inverse-surface border-b border-line dark:border-on-surface-variant z-50">
+<div class="flex items-center gap-stack-md">
+<span class="font-display text-display text-primary dark:text-primary-fixed-dim tracking-tight">POPCORN PC AI DEVELOPER</span>
+<nav class="hidden md:flex ml-10 gap-6">
+<a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary font-bold pb-1 font-button text-button" href="#">대시보드</a>
+<a class="text-on-surface-variant dark:text-outline-variant font-medium hover:text-primary transition-colors duration-200 font-button text-button" href="#">인벤토리</a>
+<a class="text-on-surface-variant dark:text-outline-variant font-medium hover:text-primary transition-colors duration-200 font-button text-button" href="#">오케스트레이션</a>
+<a class="text-on-surface-variant dark:text-outline-variant font-medium hover:text-primary transition-colors duration-200 font-button text-button" href="#">로그</a>
+<a class="text-on-surface-variant dark:text-outline-variant font-medium hover:text-primary transition-colors duration-200 font-button text-button" href="#">설정</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant" data-action="open-notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant" data-action="open-profile">account_circle</button>
+</div>
+</header>
+<div class="flex pt-header-height h-screen overflow-hidden">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 h-[calc(100vh-64px)] w-sidebar-width bg-surface-container dark:bg-inverse-surface border-r border-line dark:border-on-surface-variant flex flex-col py-stack-md gap-stack-sm overflow-y-auto">
+<div class="px-4 mb-6">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">developer_mode</span>
+</div>
+<div>
+<p class="font-h3 text-h3 text-on-surface leading-tight">미션 컨트롤</p>
+<p class="font-caption text-caption text-on-surface-variant">LLM Orchestration v2.4</p>
+</div>
+</div>
+<button class="w-full mt-4 bg-primary text-on-primary py-2 px-4 rounded-xl font-button text-button flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all" data-action="new-deployment">
+<span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                신규 배포
+            </button>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-primary-container text-on-primary-container flex items-center gap-3 py-3 px-4 rounded-xl mx-2 font-button text-button active:scale-[0.98] transition-all" href="#">
+<span class="material-symbols-outlined">assignment</span> 프로젝트 헌장
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl mx-2 font-button text-button transition-all" href="#">
+<span class="material-symbols-outlined">grid_on</span> 통합 매트릭스
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl mx-2 font-button text-button transition-all" href="#">
+<span class="material-symbols-outlined">widgets</span> 도메인 그리드
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl mx-2 font-button text-button transition-all" href="#">
+<span class="material-symbols-outlined">monitoring</span> 리소스 모니터
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl mx-2 font-button text-button transition-all" href="#">
+<span class="material-symbols-outlined">rocket_launch</span> 배포
+            </a>
+</nav>
+<div class="mt-auto pt-4 border-t border-line mx-2 space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 py-2 px-4 rounded-xl font-button text-button transition-all" href="#">
+<span class="material-symbols-outlined">help</span> 고객지원
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 py-2 px-4 rounded-xl font-button text-button transition-all" href="#">
+<span class="material-symbols-outlined">description</span> 문서
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[240px] flex-1 overflow-y-auto p-margin-page bg-background">
+<div class="max-w-[1400px] mx-auto space-y-stack-lg">
+<!-- Header & Summary Widgets -->
+<section class="space-y-stack-md">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="font-h1 text-h1 text-text-strong mb-1">팝콘PC AI 미션 컨트롤 (v1.0)</h1>
+<p class="font-body text-body text-text-sub">시스템 아키텍처 및 화면 진척도 통합 관리 모듈</p>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low p-2 rounded-lg border border-line">
+<span class="w-2 h-2 rounded-full bg-status-complete animate-pulse"></span>
+<span class="font-caption text-caption font-bold text-status-complete">시스템 가동 중</span>
+</div>
+</div>
+<!-- Bento Grid Summary -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="glass-card p-stack-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-caption text-caption text-text-sub uppercase tracking-wider">총 화면 수</span>
+<span class="material-symbols-outlined text-primary">layers</span>
+</div>
+<div>
+<p class="font-number text-number" data-bind="total-screens">42</p>
+<p class="font-caption text-caption text-status-progress">+4 이번 주 추가</p>
+</div>
+</div>
+<div class="glass-card p-stack-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-caption text-caption text-text-sub uppercase tracking-wider">구현 완료율</span>
+<span class="material-symbols-outlined text-status-complete">task_alt</span>
+</div>
+<div>
+<div class="flex items-baseline gap-1">
+<p class="font-number text-number" data-bind="completion-rate">78</p>
+<span class="font-h3 text-h3">%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-2">
+<div class="bg-status-complete h-1.5 rounded-full" style="width: 78%;"></div>
+</div>
+</div>
+</div>
+<div class="glass-card p-stack-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-caption text-caption text-text-sub uppercase tracking-wider">LLM 호출 상태</span>
+<span class="material-symbols-outlined text-status-pending">bolt</span>
+</div>
+<div>
+<p class="font-number text-number" data-bind="llm-status">안정</p>
+<p class="font-caption text-caption text-text-sub">지연 시간: 120ms</p>
+</div>
+</div>
+<div class="glass-card p-stack-md rounded-xl shadow-sm bg-primary-container text-on-primary-container border-none flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-caption text-caption text-on-primary-container/70 uppercase tracking-wider">최종 배포 일시</span>
+<span class="material-symbols-outlined">update</span>
+</div>
+<div>
+<p class="font-h3 text-h3">2024.05.22</p>
+<p class="font-caption text-caption text-on-primary-container/80">v1.0.4 hotfix applied</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Progression Matrix (Table) -->
+<section class="glass-card rounded-xl shadow-sm overflow-hidden border border-line">
+<div class="p-gutter border-b border-line flex justify-between items-center bg-white">
+<h2 class="font-h2 text-h2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                        진척도 매트릭스
+                    </h2>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 border border-line rounded-lg font-button text-button flex items-center gap-2 hover:bg-surface-container transition-all" data-action="filter-table">
+<span class="material-symbols-outlined text-[18px]">filter_list</span> 필터
+                        </button>
+<button class="px-3 py-1.5 bg-on-surface text-on-primary rounded-lg font-button text-button flex items-center gap-2 hover:brightness-125 transition-all" data-action="export-csv">
+<span class="material-symbols-outlined text-[18px]">download</span> 내보내기
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low font-button text-button text-on-surface-variant">
+<th class="px-6 py-4 font-semibold border-b border-line">화면 ID</th>
+<th class="px-6 py-4 font-semibold border-b border-line">화면명</th>
+<th class="px-6 py-4 font-semibold border-b border-line">기획</th>
+<th class="px-6 py-4 font-semibold border-b border-line">디자인</th>
+<th class="px-6 py-4 font-semibold border-b border-line">구현상태</th>
+<th class="px-6 py-4 font-semibold border-b border-line">미리보기</th>
+<th class="px-6 py-4 font-semibold border-b border-line">동작 테스트</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-line font-body text-body">
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-mono text-primary font-semibold">FR-DEV-010</td>
+<td class="px-6 py-4">개발 허브 (미션 컨트롤)</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-progress/10 text-status-progress rounded-full text-caption font-bold">진행중</span></td>
+<td class="px-6 py-4"><button class="text-primary hover:underline flex items-center gap-1" data-action="preview-static"><span class="material-symbols-outlined text-[16px]">visibility</span> 보기</button></td>
+<td class="px-6 py-4"><button class="text-on-surface-variant/50 cursor-not-allowed flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">play_circle</span> 비활성</button></td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-mono text-primary font-semibold">FR-LND-001</td>
+<td class="px-6 py-4">랜딩 페이지 메인</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">배포완료</span></td>
+<td class="px-6 py-4"><button class="text-primary hover:underline flex items-center gap-1" data-action="preview-static"><span class="material-symbols-outlined text-[16px]">visibility</span> 보기</button></td>
+<td class="px-6 py-4"><button class="text-status-progress hover:underline flex items-center gap-1" data-action="test-live"><span class="material-symbols-outlined text-[16px]">play_circle</span> 실행</button></td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-mono text-primary font-semibold">FR-EXP-005</td>
+<td class="px-6 py-4">고급 사용자 구성 커스텀</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-pending/10 text-status-pending rounded-full text-caption font-bold">검토중</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-surface-container-highest text-on-surface-variant rounded-full text-caption font-bold">대기</span></td>
+<td class="px-6 py-4"><span class="text-outline-variant">-</span></td>
+<td class="px-6 py-4"><span class="text-outline-variant">-</span></td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-mono text-primary font-semibold">FR-ADM-002</td>
+<td class="px-6 py-4">인벤토리 통합 관리자</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">완료</span></td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-status-complete/10 text-status-complete rounded-full text-caption font-bold">배포완료</span></td>
+<td class="px-6 py-4"><button class="text-primary hover:underline flex items-center gap-1" data-action="preview-static"><span class="material-symbols-outlined text-[16px]">visibility</span> 보기</button></td>
+<td class="px-6 py-4"><button class="text-status-progress hover:underline flex items-center gap-1" data-action="test-live"><span class="material-symbols-outlined text-[16px]">play_circle</span> 실행</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Domain Sections Grid -->
+<section class="space-y-stack-md">
+<h2 class="font-h2 text-h2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">account_tree</span>
+                    도메인별 화면 리스트
+                </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Landing (LND) -->
+<div class="bg-white border border-line rounded-xl p-stack-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 mb-4 border-b border-line pb-3">
+<div class="p-2 bg-primary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 leading-none">랜딩 (LND)</h3>
+<span class="font-caption text-caption text-text-sub">12개 화면</span>
+</div>
+</div>
+<ul class="space-y-3 font-body text-body">
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">메인 홈</span>
+<span class="material-symbols-outlined text-[16px] text-status-complete">check_circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">서비스 소개</span>
+<span class="material-symbols-outlined text-[16px] text-status-complete">check_circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">가이드 센터</span>
+<span class="material-symbols-outlined text-[16px] text-status-progress">pending</span>
+</li>
+</ul>
+<button class="w-full mt-6 py-2 border-t border-line text-primary font-button text-button hover:bg-surface-container-low transition-colors" data-action="view-all-lnd">전체 보기</button>
+</div>
+<!-- Beginner (BEG) -->
+<div class="bg-white border border-line rounded-xl p-stack-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 mb-4 border-b border-line pb-3">
+<div class="p-2 bg-status-pending/10 rounded-lg">
+<span class="material-symbols-outlined text-status-pending" style="font-variation-settings: 'FILL' 1;">child_care</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 leading-none">초급자 (BEG)</h3>
+<span class="font-caption text-caption text-text-sub">8개 화면</span>
+</div>
+</div>
+<ul class="space-y-3 font-body text-body">
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">이지 위저드 Step 1</span>
+<span class="material-symbols-outlined text-[16px] text-status-complete">check_circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">추천 AI 분석 리포트</span>
+<span class="material-symbols-outlined text-[16px] text-status-progress">pending</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">장바구니 전송</span>
+<span class="material-symbols-outlined text-[16px] text-outline-variant">circle</span>
+</li>
+</ul>
+<button class="w-full mt-6 py-2 border-t border-line text-primary font-button text-button hover:bg-surface-container-low transition-colors" data-action="view-all-beg">전체 보기</button>
+</div>
+<!-- Expert (EXP) -->
+<div class="bg-white border border-line rounded-xl p-stack-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 mb-4 border-b border-line pb-3">
+<div class="p-2 bg-status-progress/10 rounded-lg">
+<span class="material-symbols-outlined text-status-progress" style="font-variation-settings: 'FILL' 1;">engineering</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 leading-none">고급자 (EXP)</h3>
+<span class="font-caption text-caption text-text-sub">15개 화면</span>
+</div>
+</div>
+<ul class="space-y-3 font-body text-body">
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">부품 커스텀 그리드</span>
+<span class="material-symbols-outlined text-[16px] text-status-complete">check_circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">오버클럭 호환성 체크</span>
+<span class="material-symbols-outlined text-[16px] text-outline-variant">circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">벤치마크 시뮬레이터</span>
+<span class="material-symbols-outlined text-[16px] text-outline-variant">circle</span>
+</li>
+</ul>
+<button class="w-full mt-6 py-2 border-t border-line text-primary font-button text-button hover:bg-surface-container-low transition-colors" data-action="view-all-exp">전체 보기</button>
+</div>
+<!-- Administrator (ADM) -->
+<div class="bg-white border border-line rounded-xl p-stack-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 mb-4 border-b border-line pb-3">
+<div class="p-2 bg-on-surface-variant/10 rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 leading-none">관리자 (ADM)</h3>
+<span class="font-caption text-caption text-text-sub">7개 화면</span>
+</div>
+</div>
+<ul class="space-y-3 font-body text-body">
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">재고 관리 대시보드</span>
+<span class="material-symbols-outlined text-[16px] text-status-complete">check_circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">LLM 프롬프트 튜너</span>
+<span class="material-symbols-outlined text-[16px] text-status-complete">check_circle</span>
+</li>
+<li class="flex justify-between items-center group cursor-pointer" data-action="go-to-screen">
+<span class="group-hover:text-primary transition-colors">사용자 피드백 로그</span>
+<span class="material-symbols-outlined text-[16px] text-status-progress">pending</span>
+</li>
+</ul>
+<button class="w-full mt-6 py-2 border-t border-line text-primary font-button text-button hover:bg-surface-container-low transition-colors" data-action="view-all-adm">전체 보기</button>
+</div>
+</div>
+</section>
+<!-- Task/Log Monitoring Section (Small Overlay Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="glass-card rounded-xl shadow-sm border border-line">
+<div class="px-6 py-4 border-b border-line flex items-center justify-between">
+<h3 class="font-h3 text-h3">실시간 배포 로그</h3>
+<button class="text-primary font-button text-button text-caption hover:underline">전체 로그</button>
+</div>
+<div class="p-4 bg-gray-900 rounded-b-xl h-48 font-mono text-xs overflow-y-auto space-y-1">
+<p class="text-green-400">[14:22:01] INFO: Screen FR-LND-001 successfully deployed to production.</p>
+<p class="text-blue-400">[14:25:30] TASK: Triggering cache clear for domain EXP.</p>
+<p class="text-yellow-400">[14:26:12] WARN: LLM Response latency over 200ms detected.</p>
+<p class="text-gray-400">[14:28:45] DEBUG: Syncing metadata with Firestore...</p>
+<p class="text-green-400">[14:30:00] INFO: Automatic integrity check passed (100%).</p>
+<p class="text-gray-400">[14:31:22] DEBUG: Updating progress matrix state.</p>
+</div>
+</div>
+<div class="glass-card rounded-xl shadow-sm border border-line p-stack-md flex flex-col justify-center">
+<div class="text-center space-y-2">
+<div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-primary text-3xl">add_chart</span>
+</div>
+<h3 class="font-h3 text-h3">새 화면 분석 요청</h3>
+<p class="font-body text-body text-text-sub px-10">AI를 활용하여 새로운 기획서의 화면 구조와 데이터 바인딩 규칙을 자동으로 생성합니다.</p>
+<button class="mt-4 px-6 py-2 bg-primary text-on-primary rounded-lg font-button text-button hover:brightness-110 active:scale-95 transition-all" data-action="ai-analysis-request">
+                            AI 분석 시작하기
+                        </button>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-stack-lg pt-stack-md border-t border-line text-center">
+<p class="font-caption text-caption text-text-sub">© 2024 POPCORN PC AI Project Team. Confidential. Optimized for Admin Resolving.</p>
+</footer>
+</main>
+</div>
+<!-- Floating Action Button (Contextual for Home/Dashboard) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50" data-action="quick-action-fab" title="Quick Task">
+<span class="material-symbols-outlined">add</span>
+</button>
+<script>
+    // Simple Interaction logic
+    document.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const action = e.currentTarget.getAttribute('data-action');
+            console.log(`Action triggered: ${action}`);
+            // Example feedback for interactive elements
+            if (action === 'test-live') {
+                alert('실시간 동작 테스트 환경을 빌드 중입니다...');
+            }
+        });
+    });
+
+    // Matrix Row Hover Effect for visual depth
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.addEventListener('mouseenter', () => {
+            row.classList.add('shadow-sm');
+        });
+        row.addEventListener('mouseleave', () => {
+            row.classList.remove('shadow-sm');
+        });
+    });
+</script>
+</body></html>
