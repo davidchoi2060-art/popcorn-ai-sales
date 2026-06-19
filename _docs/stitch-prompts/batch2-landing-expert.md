@@ -1,4 +1,4 @@
-배치1의 공통 규칙 블록을 그대로 재사용하되, 고급자 화면은 `data-domain="expert"`, 랜딩은 `data-domain="user"`로 지정합니다.
+﻿배치1의 공통 규칙 블록을 그대로 재사용하되, 고급자 화면은 `data-domain="expert"`, 랜딩은 `data-domain="user"`로 지정합니다.
 
 ---
 
@@ -127,3 +127,22 @@ data-screen-id="FR-EXP-040" data-domain="expert".
 ---
 
 배치2 산출물이 완성되었습니다. 랜딩(히어로 Display 카피 + 분기 카드 + hover 효과), SSO 모달(실패 처리 포함), 고급자 1~4단계(우선순위·세대·메모리·전력)를 모두 한국어 통일·자리표시자 포함으로 작성했습니다. 생성 후 랜딩은 `_publish/User_Main/`, 고급자는 `_publish/Rec_Expert/`에 저장하시면 됩니다.
+
+---
+
+## 화면 1 갱신 — index 확장 랜딩 기준 (2026-06-19)
+
+기존 index 프롬프트는 히어로 + 초급자/고급자 2분할 카드 중심이었으나, 현재 개발 기준 랜딩은 다음 섹션을 모두 포함한다.
+
+1. GNB: 브랜드 로고, 초급자 모드, 고급자 모드, 로그인, 회원가입, 관리자, DEV 버튼
+2. Hero: 3대 AI 병렬 분석, 팝콘PC 실재고 검증, 초급자/고급자 CTA
+3. RealtimePanel: 실시간 인기 견적 TOP 5, 실시간 가격 동향
+4. Mode Select: 초급자 모드 카드, 고급자 모드 카드
+5. How It Works: 4단계 사용 흐름 탭/도트
+6. Spec Preview: 추천 견적 부품 미리보기
+7. AI Engines: Gemini / ChatGPT / Claude 역할 설명, 7초 Fail-safe 안내
+8. Reviews: 사용자 후기 3개
+9. Special Event Banner: 특가·이벤트 롤링 배너
+10. Final CTA + Footer
+
+새 랜딩을 재생성할 경우, 위 섹션 구조를 우선 기준으로 사용한다.
