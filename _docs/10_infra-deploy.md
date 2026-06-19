@@ -61,7 +61,11 @@ API Key 등 민감 정보는 `app/.env`에만 두고 절대 Git에 올리지 않
 # app/.env.example  (키 값은 비워서 커밋, 실제 .env는 서버에서만 채움)
 NODE_ENV=production
 PORT=3000
-DATABASE_URL=postgres://popcorn_app:비밀번호@localhost:5432/popcorn_pc
+PGHOST=127.0.0.1
+PGPORT=5433
+PGDATABASE=popcorn_pc
+PGUSER=postgres
+PGPASSWORD=
 GEMINI_API_KEY=
 OPENAI_API_KEY=
 CLAUDE_API_KEY=
@@ -151,7 +155,7 @@ echo "배포 완료. dev_index에서 상태를 확인하세요."
 
 ## 10. 장애 시 빠른 점검
 
-화면이 안 뜨면 `sudo systemctl status nginx`로 Nginx, `pm2 status`로 백엔드 상태를 본다. SPA 새로고침 시 404가 나면 Nginx의 `try_files $uri $uri/ /index.html;` 설정을 확인한다. API가 500을 내면 `pm2 logs popcorn-api`로 에러를 확인한다. DB 연결 실패는 `.env`의 DATABASE_URL과 PostgreSQL 구동 상태(`sudo systemctl status postgresql`)를 점검한다. `dev-hub`의 인프라 상태 바(로컬 DB·서버 DB·Nginx)가 이 상태들을 시각화하므로 1차 점검에 활용한다. 비용이 갑자기 늘면 `USE_MOCK=true`로 전환하거나 Circuit Breaker 임계치를 낮춘다.
+화면이 안 뜨면 `sudo systemctl status nginx`로 Nginx, `pm2 status`로 백엔드 상태를 본다. SPA 새로고침 시 404가 나면 Nginx의 `try_files $uri $uri/ /index.html;` 설정을 확인한다. API가 500을 내면 `pm2 logs popcorn-api`로 에러를 확인한다. DB 연결 실패는 서버 프로세스의 `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`와 PostgreSQL 구동 상태(`sudo systemctl status postgresql`)를 점검한다. `dev-hub`의 인프라 상태 바(로컬 DB·서버 DB·Nginx)가 이 상태들을 시각화하므로 1차 점검에 활용한다. 비용이 갑자기 늘면 `USE_MOCK=true`로 전환하거나 Circuit Breaker 임계치를 낮춘다.
 
 ---
 

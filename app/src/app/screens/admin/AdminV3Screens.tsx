@@ -1,10 +1,11 @@
 import type React from "react";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import type { Screen } from "../../types";
+import { fetchAdminProducts, type AdminProductRow } from "../../api/admin";
 import { C, btn } from "../../constants/design";
 import { AdminLayout } from "../../layouts/AppLayouts";
 import { Card } from "../../components/common/Primitives";
@@ -428,7 +429,7 @@ export function AdmDashboard({ navigate }: { navigate: (s: Screen) => void }) {
 }
 
 // ── adm-product-master — 상품 마스터 및 재고 제어 ───────────────────────────
-const PRODUCTS_DUMMY = [
+const PRODUCTS_DUMMY: AdminProductRow[] = [
   { code: "101268", name: "AMD 라이젠 R5 7600X", cat: "CPU", maker: "AMD", status: "판매중", price: "248,000원", aiField: "완료" },
   { code: "204455", name: "RTX 4060 WHITE 8GB", cat: "그래픽카드", maker: "NVIDIA", status: "판매중", price: "438,000원", aiField: "일부누락" },
   { code: "300112", name: "시소닉 850W 80+ Gold", cat: "파워", maker: "Seasonic", status: "품절", price: "119,000원", aiField: "완료" },
@@ -437,11 +438,18 @@ const PRODUCTS_DUMMY = [
   { code: "603014", name: "ASUS ROG B650-A WiFi", cat: "메인보드", maker: "ASUS", status: "단종", price: "178,000원", aiField: "완료" },
 ];
 
+const PRODUCT_PAGE_SIZE = 50;
+
 export function AdmProductMaster({ navigate }: { navigate: (s: Screen) => void }) {
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
   const [maker, setMaker] = useState("");
   const [keyword, setKeyword] = useState("");
+  const [products, setProducts] = useState<AdminProductRow[]>(PRODUCTS_DUMMY);
+  const [total, setTotal] = useState(PRODUCTS_DUMMY.length);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [editCode, setEditCode] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [confirmCode, setConfirmCode] = useState<string | null>(null);
@@ -457,7 +465,53 @@ export function AdmProductMaster({ navigate }: { navigate: (s: Screen) => void }
     "일부누락": { bg: "#fff8e1", color: C.warning },
     "검증필요": { bg: "#fdecea", color: C.error },
   };
-  const editTarget = PRODUCTS_DUMMY.find(p => p.code === editCode);
+  const totalPages = Math.max(1, Math.ceil(total / PRODUCT_PAGE_SIZE));
+  const pageStart = Math.max(1, Math.min(page - 2, Math.max(1, totalPages - 4)));
+  const pageButtons = Array.from(
+    { length: Math.min(5, totalPages) },
+    (_, index) => pageStart + index,
+  );
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadProducts() {
+      setLoading(true);
+      setError("");
+
+      const result = await fetchAdminProducts({
+        category,
+        status,
+        maker,
+        keyword,
+        page: String(page),
+        limit: String(PRODUCT_PAGE_SIZE),
+      });
+
+      if (ignore) {
+        return;
+      }
+
+      if (result.success) {
+        setProducts(result.data.items);
+        setTotal(result.data.total);
+      } else {
+        setProducts([]);
+        setTotal(0);
+        setError(result.error.message);
+      }
+
+      setLoading(false);
+    }
+
+    loadProducts();
+
+    return () => {
+      ignore = true;
+    };
+  }, [category, status, maker, keyword, page]);
+
+  const editTarget = products.find(p => p.code === editCode);
 
   return (
     <AdminLayout current="adm-product-master" navigate={navigate} breadcrumb="상품 마스터">
@@ -475,25 +529,25 @@ export function AdmProductMaster({ navigate }: { navigate: (s: Screen) => void }
       {/* 검색 필터 */}
       <div className="rounded-2xl p-5 mb-5" style={{ background: C.surface, border: `1px solid ${C.line}` }}>
         <div className="flex gap-2 flex-wrap">
-          <select value={category} onChange={e => setCategory(e.target.value)}
+          <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}
             className="h-10 px-3 rounded-lg text-sm" style={{ border: `1px solid ${C.line}`, minWidth: 120 }}>
             <option value="">카테고리 전체</option>
             {["CPU", "그래픽카드", "메모리", "SSD", "메인보드", "파워", "케이스", "쿨러"].map(c => <option key={c}>{c}</option>)}
           </select>
-          <select value={status} onChange={e => setStatus(e.target.value)}
+          <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}
             className="h-10 px-3 rounded-lg text-sm" style={{ border: `1px solid ${C.line}`, minWidth: 100 }}>
             <option value="">상태 전체</option>
             {["판매중", "품절", "단종", "삭제대기"].map(s => <option key={s}>{s}</option>)}
           </select>
-          <select value={maker} onChange={e => setMaker(e.target.value)}
+          <select value={maker} onChange={e => { setMaker(e.target.value); setPage(1); }}
             className="h-10 px-3 rounded-lg text-sm" style={{ border: `1px solid ${C.line}`, minWidth: 120 }}>
             <option value="">제조사 전체</option>
             {["AMD", "NVIDIA", "Intel", "Samsung", "ASUS", "Seasonic"].map(m => <option key={m}>{m}</option>)}
           </select>
-          <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="상품명, 모델명, RTX, Ryzen..."
+          <input value={keyword} onChange={e => { setKeyword(e.target.value); setPage(1); }} placeholder="상품명, 모델명, RTX, Ryzen..."
             className="flex-1 h-10 px-3 rounded-lg text-sm" style={{ border: `1px solid ${C.line}`, minWidth: 200 }} />
-          <button className="h-10 px-5 rounded-lg text-sm font-semibold text-white" style={{ background: C.primary }}>검색</button>
-          <button className="h-10 px-4 rounded-lg text-sm font-semibold" style={{ background: C.bg, color: C.textBody, border: `1px solid ${C.line}` }}>초기화</button>
+          <button onClick={() => { setKeyword(keyword.trim()); setPage(1); }} className="h-10 px-5 rounded-lg text-sm font-semibold text-white" style={{ background: C.primary }}>검색</button>
+          <button onClick={() => { setCategory(""); setStatus(""); setMaker(""); setKeyword(""); setPage(1); }} className="h-10 px-4 rounded-lg text-sm font-semibold" style={{ background: C.bg, color: C.textBody, border: `1px solid ${C.line}` }}>초기화</button>
         </div>
       </div>
 
@@ -509,7 +563,28 @@ export function AdmProductMaster({ navigate }: { navigate: (s: Screen) => void }
               </tr>
             </thead>
             <tbody>
-              {PRODUCTS_DUMMY.map((p, i) => {
+              {loading && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-sm" style={{ color: C.textSub }}>
+                    상품 데이터를 불러오는 중입니다.
+                  </td>
+                </tr>
+              )}
+              {!loading && error && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-sm" style={{ color: C.error }}>
+                    {error}
+                  </td>
+                </tr>
+              )}
+              {!loading && !error && products.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-sm" style={{ color: C.textSub }}>
+                    조회된 상품이 없습니다.
+                  </td>
+                </tr>
+              )}
+              {!loading && !error && products.map((p) => {
                 const sc = statusColors[p.status] ?? { bg: C.bg, color: C.textSub };
                 const ac = aiFieldColors[p.aiField] ?? { bg: C.bg, color: C.textSub };
                 return (
@@ -545,14 +620,34 @@ export function AdmProductMaster({ navigate }: { navigate: (s: Screen) => void }
             </tbody>
           </table>
           <div className="flex items-center justify-between px-4 py-3" style={{ background: C.bg, borderTop: `1px solid ${C.line}` }}>
-            <p className="text-xs" style={{ color: C.textSub }}>50개 단위 페이징 · 상품 검색 0.3초 이내 응답 목표</p>
+            <p className="text-xs" style={{ color: C.textSub }}>
+              총 {total.toLocaleString("ko-KR")}개 · {page.toLocaleString("ko-KR")} / {totalPages.toLocaleString("ko-KR")} 페이지
+            </p>
             <div className="flex gap-1">
-              {["◂", "1", "2", "3", "▸"].map(p => (
-                <button key={p} className="w-8 h-8 rounded text-sm"
-                  style={{ border: `1px solid ${C.line}`, background: p === "1" ? C.primary : C.surface, color: p === "1" ? "#fff" : C.textBody }}>
-                  {p}
+              <button
+                disabled={page <= 1 || loading}
+                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                className="w-8 h-8 rounded text-sm disabled:opacity-40"
+                style={{ border: `1px solid ${C.line}`, background: C.surface, color: C.textBody }}>
+                ◂
+              </button>
+              {pageButtons.map(pageNumber => (
+                <button
+                  key={pageNumber}
+                  disabled={loading}
+                  onClick={() => setPage(pageNumber)}
+                  className="w-8 h-8 rounded text-sm disabled:opacity-40"
+                  style={{ border: `1px solid ${C.line}`, background: pageNumber === page ? C.primary : C.surface, color: pageNumber === page ? "#fff" : C.textBody }}>
+                  {pageNumber}
                 </button>
               ))}
+              <button
+                disabled={page >= totalPages || loading}
+                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                className="w-8 h-8 rounded text-sm disabled:opacity-40"
+                style={{ border: `1px solid ${C.line}`, background: C.surface, color: C.textBody }}>
+                ▸
+              </button>
             </div>
           </div>
         </div>
@@ -2355,4 +2450,3 @@ export function DevHub({ navigate }: { navigate: (s: Screen) => void }) {
     </div>
   );
 }
-

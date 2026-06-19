@@ -1,4 +1,5 @@
 import http from "node:http";
+import { handleAdminProducts } from "./routes/admin.products.js";
 import { handleRecommend } from "./routes/recommend.js";
 
 const PORT = Number(process.env.PORT || 3000);
@@ -36,6 +37,12 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "GET" && url.pathname === "/api/admin/products") {
+      const result = await handleAdminProducts(url);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
     if (request.method === "POST" && url.pathname === "/api/recommend") {
       const body = await readJson(request);
       const result = await handleRecommend(request, body);
@@ -50,7 +57,8 @@ const server = http.createServer(async (request, response) => {
         message: "API route not found.",
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("[api] request failed:", error);
     sendJson(response, 500, {
       success: false,
       error: {

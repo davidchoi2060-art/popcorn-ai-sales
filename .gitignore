@@ -1,5 +1,12 @@
 node_modules/
+.env
+.env.*
 app/.env
+app/.env.*
+*.local.ps1
+*.secret.ps1
+.pgpass
+pgpass.conf
 *.log
 dist/
 build/
