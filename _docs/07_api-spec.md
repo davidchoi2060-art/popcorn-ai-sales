@@ -127,16 +127,22 @@
 
 | 메서드·경로 | 기능 | 화면 |
 |------------|------|------|
-| GET `/api/admin/products` | 카테고리·상태·키워드 검색(50건 페이징) | master |
-| GET `/api/admin/products/:code` | 단일 상품 상세 | product-edit |
-| PUT `/api/admin/products/:code` | 상품·연산필드 수정(트랜잭션) | product-edit |
-| POST `/api/admin/products/csv` | CSV Upsert(신규 Insert/기존 Update) | csv-import |
-| PUT `/api/admin/products/:code/status` | 품절·단종 토글(1초 내 풀 제외) | category-policy |
-| PUT `/api/admin/policy/margin` | 카테고리 마진율 일괄 | category-policy |
-| GET `/api/admin/cost` | 3사 토큰·달러 비용 집계 | dashboard |
-| PUT `/api/admin/cost/threshold` | 일일 비용 임계치 설정(Circuit Breaker) | dashboard |
-| GET `/api/admin/rate-limit` / PUT | 등급·IP별 한도 조회/설정 | rate-limit |
-| PUT `/api/admin/policy/weights` | 전역 추천 가중치(슬라이더) | dev_index |
+| GET `/api/admin/dashboard/business` | 실시간 견적 피드, 특가 CTR, 키워드, 가격동향 요약 | adm-dashboard |
+| GET `/api/admin/products` | 카테고리·상태·키워드 검색(50건 페이징) | adm-product-master |
+| GET `/api/admin/products/:code` | 단일 상품 상세 | adm-product-master |
+| PUT `/api/admin/products/:code` | 상품·연산필드 수정(트랜잭션) | adm-product-master |
+| POST `/api/admin/products/csv` | CSV Upsert(신규 Insert/기존 Update) | adm-csv-import |
+| PUT `/api/admin/products/:code/status` | 품절·단종 토글(1초 내 풀 제외) | adm-product-master |
+| PUT `/api/admin/policy/margin` | 카테고리 마진율 일괄 | adm-price-policy |
+| PUT `/api/admin/policy/weights` | 전역 추천 가중치(슬라이더) | adm-recommend-weights |
+| GET `/api/admin/cost` | 3사 토큰·원화/달러 비용 집계 | adm-dashboard, adm-system-limit |
+| PUT `/api/admin/cost/threshold` | 일일 비용 임계치 설정(Circuit Breaker) | adm-system-limit |
+| GET `/api/admin/rate-limit` / PUT | 등급·IP별 한도 조회/설정 | adm-system-limit |
+| GET `/api/admin/operators` | 운영자 목록 조회 | adm-operators |
+| POST `/api/admin/operators/invite` | 운영자 초대 | adm-operators |
+| PUT `/api/admin/operators/:id` | 운영자 역할·메모 수정 | adm-operators |
+| PUT `/api/admin/operators/:id/status` | 운영자 활성/비활성 처리 | adm-operators |
+| GET `/api/admin/operators/activity` | 운영자 활동 로그 조회 | adm-operators |
 
 상품 검색 예시 요청은 `GET /api/admin/products?category=그래픽카드&status=판매중&keyword=RTX&page=1`이며, 응답은 `{ items: [...50건], total, page }` 형식이다. CSV 업로드 응답은 `{ inserted, updated, errors: [...오류행] }`로 정상·오류를 분리 반환한다(EX-ADM-04).
 
