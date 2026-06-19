@@ -24,5 +24,6 @@ On Ubuntu with the postgres user:
 
 ```bash
 sudo -u postgres psql -d popcorn_pc -f app/db/migrations/002_create_product_spec_values.sql
+sudo -u postgres psql -d popcorn_pc -f app/db/migrations/003_alter_price_columns_to_bigint.sql
 sudo -u postgres psql -d popcorn_pc -f app/db/seeds/import_products.sql
 ```

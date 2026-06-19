@@ -46,8 +46,8 @@ WITH normalized_products AS (
         WHEN status IN ('판매중', '품절', '단종', '삭제대기') THEN status
         ELSE '판매중'
       END AS status,
-      NULLIF(regexp_replace(COALESCE(price_cost, ''), '[^0-9-]', '', 'g'), '')::INTEGER AS purchase_price,
-      NULLIF(regexp_replace(COALESCE(price_selling, ''), '[^0-9-]', '', 'g'), '')::INTEGER AS member_price
+      NULLIF(regexp_replace(COALESCE(price_cost, ''), '[^0-9-]', '', 'g'), '')::BIGINT AS purchase_price,
+      NULLIF(regexp_replace(COALESCE(price_selling, ''), '[^0-9-]', '', 'g'), '')::BIGINT AS member_price
     FROM raw_products
   ) p
   WHERE product_code IS NOT NULL
