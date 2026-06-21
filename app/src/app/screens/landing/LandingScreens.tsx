@@ -231,6 +231,7 @@ export function Landing({ navigate }: { navigate: (s: Screen) => void }) {
 
   const steps = [
     { icon: "💬", title: "용도·예산 입력", desc: "게임용, 사무용, 영상편집 등 목적과 예산만 알려주세요. 부품 지식은 전혀 필요 없습니다." },
+    { icon: "🖥️", title: "모니터 취향 선택", desc: "FHD·QHD·4K와 평면·커브드 중 고르면 그래픽카드 성능 여유까지 함께 맞춥니다." },
     { icon: "🤖", title: "3대 AI 병렬 분석", desc: "Gemini · ChatGPT · Claude가 동시에 최적 구성을 도출합니다. 7초 이내 완료." },
     { icon: "🔍", title: "재고·호환성 검증", desc: "팝콘PC 실재고와 5단계 호환성 검증을 자동으로 수행합니다." },
     { icon: "🛒", title: "바로 구매", desc: "확정된 견적을 한 번에 장바구니에 담고 팝콘PC 쇼핑몰에서 결제하세요." },
@@ -430,7 +431,7 @@ export function Landing({ navigate }: { navigate: (s: Screen) => void }) {
                   {[
                     "용도·예산·감성 옵션만으로 완성 견적",
                     "AI 영업사원이 최적 구성 추천",
-                    "4단계 쉬운 입력 → 즉시 결과",
+                    "5단계 쉬운 입력 → 즉시 결과",
                     "부품 교체도 쉽게 가능",
                   ].map(t => (
                     <li key={t} className="flex items-center gap-2.5 text-sm" style={{ color: C.textBody }}>
@@ -507,7 +508,7 @@ export function Landing({ navigate }: { navigate: (s: Screen) => void }) {
       <section className="py-20 px-8" style={{ background: C.surface }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: C.primary }}>간단한 4단계</p>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: C.primary }}>간단한 5단계</p>
             <h2 className="text-3xl font-bold" style={{ color: C.textStrong }}>이렇게 쉽습니다</h2>
           </div>
           <div className="flex gap-4 mb-8 justify-center">

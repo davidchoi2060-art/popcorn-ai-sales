@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "node server/server.js"
+    "server": "node server/server.js",
+    "normalize:products": "node scripts/normalize-products.js",
+    "standardize:products": "node scripts/standardize-products.js",
+    "db:reset-products-standard-v1": "node scripts/reset-products-standard-v1.js",
+    "db:apply-normalized-products": "node scripts/apply-normalized-products.js"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

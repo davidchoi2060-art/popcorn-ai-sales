@@ -1,5 +1,13 @@
 import http from "node:http";
-import { handleAdminProducts } from "./routes/admin.products.js";
+import {
+  handleAdminProductCategories,
+  handleAdminProductDetail,
+  handleAdminProducts,
+  handleAdminProductMakers,
+  handleAdminProductStatus,
+  handleAdminProductUpdate,
+} from "./routes/admin.products.js";
+import { handleGetMarginPolicies, handlePutMarginPolicies } from "./routes/admin.policy.js";
 import { handleRecommend } from "./routes/recommend.js";
 
 const PORT = Number(process.env.PORT || 3000);
@@ -39,6 +47,54 @@ const server = http.createServer(async (request, response) => {
 
     if (request.method === "GET" && url.pathname === "/api/admin/products") {
       const result = await handleAdminProducts(url);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/policy/margin") {
+      const result = await handleGetMarginPolicies();
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && url.pathname === "/api/admin/policy/margin") {
+      const body = await readJson(request);
+      const result = await handlePutMarginPolicies(body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/products/categories") {
+      const result = await handleAdminProductCategories();
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/products/makers") {
+      const result = await handleAdminProductMakers();
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    const productMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
+    const productStatusMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/status$/);
+
+    if (request.method === "GET" && productMatch) {
+      const result = await handleAdminProductDetail(decodeURIComponent(productMatch[1]));
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && productMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminProductUpdate(decodeURIComponent(productMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && productStatusMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminProductStatus(decodeURIComponent(productStatusMatch[1]), body);
       sendJson(response, result.status, result.body);
       return;
     }

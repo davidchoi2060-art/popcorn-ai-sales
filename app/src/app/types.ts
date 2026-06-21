@@ -1,6 +1,6 @@
 export type Screen =
   | "landing" | "auth-modal"
-  | "beg-step1" | "beg-step2" | "beg-step3" | "beg-step4"
+  | "beg-step1" | "beg-step2" | "beg-step3" | "beg-step4" | "beg-step5"
   | "beg-result" | "beg-detail"
   | "exp-step1" | "exp-step2" | "exp-step3" | "exp-step4" | "exp-step5"
   | "exp-result" | "exp-detail"

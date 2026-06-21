@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-20T07:33:51.987Z",
+  "source_file": "db/팝콘PC_상품_2026-06-10기준(통합).csv",
+  "total_rows": 24303,
+  "product_rows": 24303,
+  "spec_rows": 24303,
+  "review_rows": 15226,
+  "ai_candidate_rows": 12527,
+  "status_counts": {
+    "품절": 16443,
+    "판매중": 7860
+  },
+  "part_type_counts": {
+    "UNKNOWN": 3853,
+    "COOLER_CPU_AIO": 2043,
+    "CASE": 1971,
+    "ACCESSORY": 285,
+    "CABLE": 1076,
+    "MOUSE": 200,
+    "KEYBOARD": 432,
+    "KEYBOARD_MOUSE_SET": 35,
+    "ASSEMBLY_SERVICE": 3436,
+    "SPEAKER": 103,
+    "SSD": 1215,
+    "CPU": 752,
+    "POWER": 1383,
+    "INTERNAL": 492,
+    "RAM": 1609,
+    "GPU": 2511,
+    "MB": 736,
+    "HEADSET": 108,
+    "MONITOR": 1260,
+    "COOLER_SYSTEM": 91,
+    "HDD": 292,
+    "NETWORK": 192,
+    "COOLER_THERMAL": 66,
+    "PREBUILT_PC": 42,
+    "COOLER_CPU_AIR": 15,
+    "SOFTWARE": 105
+  }
+}

@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -9,11 +9,70 @@ import { C, btn } from "../../constants/design";
 import { UserLayout } from "../../layouts/AppLayouts";
 import { requestRecommendation } from "../../api/recommend";
 
+type BeginnerDraft = {
+  purpose: string;
+  games: string[];
+  customGame: string;
+  details: string[];
+  budget: number;
+  budgetGrade: string;
+  styles: string[];
+  monitorResolution: string;
+  monitorShape: string;
+  monitorUse: string;
+  monitorExcluded: boolean;
+};
+
+const BEGINNER_DRAFT_KEY = "popcorn-beginner-draft";
+const DEFAULT_BEGINNER_DRAFT: BeginnerDraft = {
+  purpose: "",
+  games: [],
+  customGame: "",
+  details: [],
+  budget: 100,
+  budgetGrade: "",
+  styles: [],
+  monitorResolution: "",
+  monitorShape: "",
+  monitorUse: "",
+  monitorExcluded: false,
+};
+
+function readBeginnerDraft(): BeginnerDraft {
+  if (typeof window === "undefined") return DEFAULT_BEGINNER_DRAFT;
+  try {
+    const raw = window.sessionStorage.getItem(BEGINNER_DRAFT_KEY);
+    return raw ? { ...DEFAULT_BEGINNER_DRAFT, ...JSON.parse(raw) } : DEFAULT_BEGINNER_DRAFT;
+  } catch {
+    return DEFAULT_BEGINNER_DRAFT;
+  }
+}
+
+function useBeginnerDraft() {
+  const [draft, setDraft] = useState<BeginnerDraft>(() => readBeginnerDraft());
+  const updateDraft = (patch: Partial<BeginnerDraft>) => {
+    setDraft(prev => {
+      const next = { ...prev, ...patch };
+      window.sessionStorage.setItem(BEGINNER_DRAFT_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+  return { draft, updateDraft };
+}
+
+function getPurposeDetailText(draft: BeginnerDraft) {
+  if (draft.purpose === "게임용") {
+    return [...draft.games, draft.customGame.trim()].filter(Boolean).join(", ");
+  }
+  return draft.details.join(", ");
+}
+
 const BEG_STEPS = [
   { num: 1, label: "용도 선택" },
   { num: 2, label: "예산 설정" },
   { num: 3, label: "스타일 옵션" },
-  { num: 4, label: "AI 요청" },
+  { num: 4, label: "모니터 선택" },
+  { num: 5, label: "AI 요청" },
 ];
 
 function BegStepBar({ current }: { current: number }) {
@@ -58,7 +117,7 @@ function BegShell({ step, navigate, title, subtitle, promptText, promptKeys, onP
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.line}` }}>
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <BegStepBar current={step} />
-          <span className="text-xs" style={{ color: C.textSub }}>초급자 모드 · {step}/4 단계</span>
+          <span className="text-xs" style={{ color: C.textSub }}>초급자 모드 · {step}/5 단계</span>
         </div>
       </div>
 
@@ -151,25 +210,69 @@ const GAME_OPTIONS = [
   { key: "사이버펑크 2077", icon: "🌆", desc: "오픈월드 · 초고사양" },
 ];
 
+const PURPOSE_DETAIL_OPTIONS: Record<string, { key: string; icon: string; desc: string }[]> = {
+  사무용: [
+    { key: "문서·엑셀 위주", icon: "📄", desc: "오피스, 세금계산서, 업무 문서" },
+    { key: "화상회의 많음", icon: "🎥", desc: "줌, 팀즈, 웹캠 회의" },
+    { key: "여러 창 동시 사용", icon: "🧩", desc: "브라우저 탭과 업무 프로그램 병행" },
+    { key: "조용한 PC 선호", icon: "🔇", desc: "소음 적은 사무 환경" },
+  ],
+  영상편집용: [
+    { key: "유튜브 영상 편집", icon: "▶️", desc: "일반 영상 컷편집과 자막" },
+    { key: "4K 영상 편집", icon: "🎞️", desc: "고해상도 원본과 프리뷰" },
+    { key: "숏폼·간단 편집", icon: "📱", desc: "릴스, 쇼츠, 틱톡 영상" },
+    { key: "사진·디자인 병행", icon: "🎨", desc: "포토샵, 일러스트 작업" },
+  ],
+  인터넷방송용: [
+    { key: "게임 방송", icon: "🎮", desc: "게임 플레이와 송출 동시 진행" },
+    { key: "얼굴캠·토크 방송", icon: "🎙️", desc: "캠, 마이크, 채팅 중심" },
+    { key: "녹화 후 편집까지", icon: "✂️", desc: "방송 저장본 편집 포함" },
+    { key: "원컴 방송", icon: "🖥️", desc: "PC 한 대로 게임과 송출 처리" },
+  ],
+};
+
 function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
-  const [purpose, setPurpose] = useState("");
-  const [games, setGames] = useState<string[]>([]);
+  const { draft, updateDraft } = useBeginnerDraft();
+  const [purpose, setPurpose] = useState(draft.purpose);
+  const [games, setGames] = useState<string[]>(draft.games);
+  const [customGame, setCustomGame] = useState(draft.customGame);
+  const [details, setDetails] = useState<string[]>(draft.details);
+  const selectedPurpose = PURPOSE_OPTIONS.find(p => p.key === purpose);
+  const detailOptions = purpose === "게임용" ? GAME_OPTIONS : PURPOSE_DETAIL_OPTIONS[purpose] ?? [];
+
+  const selectPurpose = (p: string) => {
+    setPurpose(p);
+    setDetails([]);
+    if (p !== "게임용") {
+      setGames([]);
+      setCustomGame("");
+    }
+  };
+
   const toggleGame = (g: string) => setGames(p => p.includes(g) ? p.filter(x => x !== g) : [...p, g]);
+  const toggleDetail = (d: string) => setDetails(p => p.includes(d) ? p.filter(x => x !== d) : [...p, d]);
+  const selectedDetailText = purpose === "게임용"
+    ? [...games, customGame.trim()].filter(Boolean).join(", ")
+    : details.join(", ");
+
+  useEffect(() => {
+    updateDraft({ purpose, games, customGame, details });
+  }, [purpose, games, customGame, details]);
 
   return (
     <BegShell
       step={1} navigate={navigate}
       title="어떤 용도로 쓰실 PC인가요?"
       subtitle="주 목적 하나를 선택해 주세요. AI가 맞춤 사양을 자동으로 설계합니다."
-      promptText="주 용도는 [purpose]이며, 팝콘PC의 최적 부품으로 견적을 조립해 주세요."
-      promptKeys={{ purpose: purpose || "?" }}
+      promptText="주 용도는 [purpose]이며, 세부 사용은 [detail]입니다. 팝콘PC의 최적 부품으로 견적을 조립해 주세요."
+      promptKeys={{ purpose: purpose || "?", detail: selectedDetailText || "?" }}
       nextScreen="beg-step2"
     >
       {/* Purpose big cards */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         {PURPOSE_OPTIONS.map(p => (
           <div key={p.key}
-            onClick={() => setPurpose(p.key)}
+            onClick={() => selectPurpose(p.key)}
             className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
             style={{
               border: `2px solid ${purpose === p.key ? p.color : C.line}`,
@@ -195,28 +298,60 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
         ))}
       </div>
 
-      {/* Game sub-selection */}
-      {purpose === "게임용" && (
-        <div className="rounded-2xl p-6" style={{ background: "#f3e5f5", border: "1.5px solid #ce93d8" }}>
-          <p className="text-sm font-bold mb-1" style={{ color: "#6a1b9a" }}>🎮 주로 즐기는 게임을 골라주세요 (다중 선택)</p>
-          <p className="text-xs mb-4" style={{ color: "#9c27b0" }}>AI가 해당 게임의 권장 사양을 기준으로 부품을 선정합니다.</p>
+      {/* Purpose sub-selection */}
+      {purpose && selectedPurpose && (
+        <div className="rounded-2xl p-6" style={{ background: selectedPurpose.bg, border: `1.5px solid ${selectedPurpose.color}55` }}>
+          <p className="text-sm font-bold mb-1" style={{ color: selectedPurpose.color }}>
+            {selectedPurpose.icon} {purpose === "게임용" ? "주로 즐기는 게임을 골라주세요" : "세부 사용 목적을 골라주세요"} (다중 선택)
+          </p>
+          <p className="text-xs mb-4" style={{ color: selectedPurpose.color }}>
+            {purpose === "게임용"
+              ? "AI가 게임별 권장 사양과 직접 입력한 게임명을 함께 참고합니다."
+              : "AI가 선택한 사용 패턴에 맞춰 CPU, 메모리, 저장공간, 소음 기준을 조정합니다."}
+          </p>
           <div className="grid grid-cols-2 gap-3">
-            {GAME_OPTIONS.map(g => (
-              <div key={g.key} onClick={() => toggleGame(g.key)}
+            {detailOptions.map(o => {
+              const isSelected = purpose === "게임용" ? games.includes(o.key) : details.includes(o.key);
+              return (
+              <div key={o.key} onClick={() => purpose === "게임용" ? toggleGame(o.key) : toggleDetail(o.key)}
                 className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
                 style={{
-                  background: games.includes(g.key) ? "#ce93d8" : C.surface,
-                  border: `1.5px solid ${games.includes(g.key) ? "#9c27b0" : C.line}`,
+                  background: isSelected ? `${selectedPurpose.color}22` : C.surface,
+                  border: `1.5px solid ${isSelected ? selectedPurpose.color : C.line}`,
                 }}>
-                <span className="text-xl">{g.icon}</span>
+                <span className="text-xl">{o.icon}</span>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: games.includes(g.key) ? "#4a148c" : C.textBody }}>{g.key}</p>
-                  <p className="text-xs" style={{ color: C.textSub }}>{g.desc}</p>
+                  <p className="text-sm font-semibold" style={{ color: isSelected ? selectedPurpose.color : C.textBody }}>{o.key}</p>
+                  <p className="text-xs" style={{ color: C.textSub }}>{o.desc}</p>
                 </div>
-                {games.includes(g.key) && <span className="ml-auto text-xs font-bold" style={{ color: "#4a148c" }}>✓</span>}
+                {isSelected && <span className="ml-auto text-xs font-bold" style={{ color: selectedPurpose.color }}>✓</span>}
               </div>
-            ))}
+              );
+            })}
           </div>
+
+          {purpose === "게임용" && (
+            <div className="mt-4 rounded-xl p-4" style={{ background: C.surface, border: `1.5px dashed ${selectedPurpose.color}88` }}>
+              <label className="text-sm font-semibold block mb-2" style={{ color: C.textBody }}>목록에 없는 게임 직접 입력</label>
+              <input
+                value={customGame}
+                onChange={e => setCustomGame(e.target.value)}
+                placeholder="예: 발로란트, 로스트아크, 마인크래프트"
+                className="w-full h-11 rounded-lg px-4 text-sm outline-none"
+                style={{ border: `1.5px solid ${C.line}`, color: C.textBody, background: C.bg }}
+              />
+              <p className="text-xs mt-2" style={{ color: C.textSub }}>여러 게임은 쉼표로 구분해서 입력해도 됩니다.</p>
+            </div>
+          )}
+
+          {selectedDetailText && (
+            <div className="mt-4 p-3 rounded-xl flex items-center gap-2" style={{ background: C.surface, border: `1px solid ${selectedPurpose.color}33` }}>
+              <span className="text-sm">✓</span>
+              <p className="text-sm" style={{ color: selectedPurpose.color }}>
+                <span className="font-bold">선택된 세부 조건:</span> {selectedDetailText}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </BegShell>
@@ -232,7 +367,8 @@ const BUDGET_PRESETS = [
 ];
 
 function BegStep2({ navigate }: { navigate: (s: Screen) => void }) {
-  const [budget, setBudget] = useState(100);
+  const { draft, updateDraft } = useBeginnerDraft();
+  const [budget, setBudget] = useState(draft.budget);
   const [preset, setPreset] = useState("");
 
   const getBudgetDesc = (v: number) => {
@@ -243,14 +379,19 @@ function BegStep2({ navigate }: { navigate: (s: Screen) => void }) {
   };
   const desc = getBudgetDesc(budget);
   const pct = ((budget - 30) / (300 - 30)) * 100;
+  const purposeDetail = getPurposeDetailText(draft);
+
+  useEffect(() => {
+    updateDraft({ budget, budgetGrade: desc.label });
+  }, [budget, desc.label]);
 
   return (
     <BegShell
       step={2} navigate={navigate}
       title="예산은 어느 정도 생각하세요?"
       subtitle="슬라이더를 움직이거나 아래 프리셋을 클릭하세요."
-      promptText="예산은 약 [budget] 정도로, [grade] 구성을 원합니다."
-      promptKeys={{ budget: `${budget}만원`, grade: desc.label }}
+      promptText="주 용도는 [purpose], 세부 사용은 [detail]입니다. 예산은 약 [budget] 정도로, [grade] 구성을 원합니다."
+      promptKeys={{ purpose: draft.purpose || "?", detail: purposeDetail || "?", budget: `${budget}만원`, grade: desc.label }}
       onPrev={() => navigate("beg-step1")}
       nextScreen="beg-step3"
     >
@@ -319,16 +460,27 @@ const STYLE_OPTIONS = [
 ];
 
 function BegStep3({ navigate }: { navigate: (s: Screen) => void }) {
-  const [styles, setStyles] = useState<string[]>([]);
+  const { draft, updateDraft } = useBeginnerDraft();
+  const [styles, setStyles] = useState<string[]>(draft.styles);
   const toggle = (s: string) => setStyles(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+  const purposeDetail = getPurposeDetailText(draft);
+
+  useEffect(() => {
+    updateDraft({ styles });
+  }, [styles]);
 
   return (
     <BegShell
       step={3} navigate={navigate}
       title="원하는 스타일이 있나요?"
       subtitle="여러 개 선택 가능합니다. AI가 해당 스타일에 맞는 부품과 케이스를 우선 추천합니다."
-      promptText="외관·스타일은 [style] 조건에 맞게 구성해 주세요."
-      promptKeys={{ style: styles.length ? styles.join(", ") : "?" }}
+      promptText="주 용도는 [purpose], 세부 사용은 [detail]이고 예산은 [budget]입니다. 외관·스타일은 [style] 조건에 맞게 구성해 주세요."
+      promptKeys={{
+        purpose: draft.purpose || "?",
+        detail: purposeDetail || "?",
+        budget: draft.budget ? `${draft.budget}만원` : "?",
+        style: styles.length ? styles.join(", ") : "?",
+      }}
       onPrev={() => navigate("beg-step2")}
       nextScreen="beg-step4"
     >
@@ -373,9 +525,178 @@ function BegStep3({ navigate }: { navigate: (s: Screen) => void }) {
   );
 }
 
-// ── Beg Step 4 (Summary) ───────────────────────────────────────────────────
+// ── Beg Step 4 ─────────────────────────────────────────────────────────────
+const MONITOR_RESOLUTION_OPTIONS = [
+  { key: "FHD", label: "FHD", desc: "가성비와 호환성이 좋은 기본 선택", size: "24형 추천", color: "#1e88e5" },
+  { key: "QHD", label: "QHD", desc: "게임과 작업 모두 선명한 균형형", size: "27형 추천", color: "#7b1fa2" },
+  { key: "4K", label: "4K", desc: "영상·사진 작업에 유리한 초고해상도", size: "32형 추천", color: "#bf360c" },
+];
+
+const MONITOR_SHAPE_OPTIONS = [
+  { key: "평면", icon: "▭", desc: "문서·영상·일반 게임에 무난합니다.", color: "#1565c0" },
+  { key: "커브드", icon: "◜◝", desc: "몰입감 있는 게임과 넓은 화면에 좋아요.", color: "#2e7d32" },
+];
+
+const MONITOR_USE_OPTIONS = [
+  { key: "눈 편한 화면", icon: "👀", desc: "장시간 사무·학습" },
+  { key: "부드러운 게임", icon: "🎯", desc: "144Hz 이상 우선" },
+  { key: "색감 중요", icon: "🎨", desc: "영상·디자인 작업" },
+];
+
 function BegStep4({ navigate }: { navigate: (s: Screen) => void }) {
-  const defaultText = `안녕하세요! 저는 PC를 잘 모르는 초급자입니다.\n주 용도는 [게임(배틀그라운드)]이며, 예산은 [100만 원~130만 원] 사이로,\n외관은 [화이트감성] 스타일로 최적의 견적을 조립해 주세요.\n호환성과 팝콘PC 재고를 반드시 확인해 주세요.`;
+  const { draft, updateDraft } = useBeginnerDraft();
+  const [resolution, setResolution] = useState(draft.monitorResolution || "QHD");
+  const [shape, setShape] = useState(draft.monitorShape || "평면");
+  const [use, setUse] = useState(draft.monitorUse || "부드러운 게임");
+  const [monitorExcluded, setMonitorExcluded] = useState(draft.monitorExcluded);
+  const selectedResolution = MONITOR_RESOLUTION_OPTIONS.find(o => o.key === resolution) ?? MONITOR_RESOLUTION_OPTIONS[1];
+  const purposeDetail = getPurposeDetailText(draft);
+
+  useEffect(() => {
+    updateDraft({ monitorResolution: resolution, monitorShape: shape, monitorUse: use, monitorExcluded });
+  }, [resolution, shape, use, monitorExcluded]);
+
+  const includeMonitor = () => {
+    setMonitorExcluded(false);
+  };
+
+  const skipMonitor = () => {
+    updateDraft({ monitorResolution: "", monitorShape: "", monitorUse: "", monitorExcluded: true });
+    navigate("beg-step5");
+  };
+
+  return (
+    <BegShell
+      step={4} navigate={navigate}
+      title="모니터는 어떻게 쓰실 예정인가요?"
+      subtitle="해상도와 화면 형태만 골라도 AI가 그래픽카드 성능과 모니터 조합을 함께 맞춥니다."
+      promptText="주 용도는 [purpose], 세부 사용은 [detail], 예산은 [budget], 스타일은 [style]입니다. 모니터는 [resolution] 해상도, [shape] 화면, [use] 용도에 맞춰 추천해 주세요."
+      promptKeys={{
+        purpose: draft.purpose || "?",
+        detail: purposeDetail || "?",
+        budget: draft.budget ? `${draft.budget}만원` : "?",
+        style: draft.styles.length ? draft.styles.join(", ") : "?",
+        resolution,
+        shape,
+        use,
+      }}
+      onPrev={() => navigate("beg-step3")}
+      nextScreen="beg-step5"
+    >
+      <div className="rounded-2xl p-5 mb-5 flex items-center justify-between gap-4" style={{ background: C.primaryLight, border: `1px solid ${C.primary}33` }}>
+        <div>
+          <p className="text-sm font-bold" style={{ color: C.primary }}>모니터가 이미 있거나 본체만 견적받고 싶으신가요?</p>
+          <p className="text-xs mt-1" style={{ color: C.textSub }}>건너뛰면 AI 요청서에 모니터 제외 조건이 들어가고, 본체 부품 예산에 더 집중합니다.</p>
+        </div>
+        <button
+          onClick={skipMonitor}
+          className="h-10 px-5 rounded-xl text-sm font-bold shrink-0"
+          style={{ background: C.surface, color: C.primary, border: `1.5px solid ${C.primary}` }}
+        >
+          견적에서 빼기
+        </button>
+      </div>
+      <div className="grid gap-5" style={{ gridTemplateColumns: "1fr 0.8fr" }}>
+        <div className="space-y-5">
+          <div className="rounded-2xl p-5" style={{ background: C.surface, border: `1px solid ${C.line}`, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+            <p className="text-sm font-bold mb-3" style={{ color: C.textBody }}>해상도 선택</p>
+            <div className="grid grid-cols-3 gap-3">
+              {MONITOR_RESOLUTION_OPTIONS.map(o => (
+                <button key={o.key} onClick={() => { includeMonitor(); setResolution(o.key); }}
+                  className="rounded-xl p-4 text-left transition-all"
+                  style={{
+                    background: resolution === o.key ? `${o.color}10` : C.bg,
+                    border: `2px solid ${resolution === o.key ? o.color : C.line}`,
+                    boxShadow: resolution === o.key ? `0 4px 14px ${o.color}22` : "none",
+                  }}>
+                  <span className="text-2xl font-black block mb-2" style={{ color: resolution === o.key ? o.color : C.textStrong }}>{o.label}</span>
+                  <span className="text-xs font-semibold block mb-1" style={{ color: C.textBody }}>{o.size}</span>
+                  <span className="text-xs leading-relaxed" style={{ color: C.textSub }}>{o.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5" style={{ background: C.surface, border: `1px solid ${C.line}` }}>
+            <p className="text-sm font-bold mb-3" style={{ color: C.textBody }}>평면 / 커브드</p>
+            <div className="grid grid-cols-2 gap-3">
+              {MONITOR_SHAPE_OPTIONS.map(o => (
+                <button key={o.key} onClick={() => { includeMonitor(); setShape(o.key); }}
+                  className="flex items-center gap-4 p-4 rounded-xl text-left transition-all"
+                  style={{
+                    background: shape === o.key ? `${o.color}10` : C.bg,
+                    border: `2px solid ${shape === o.key ? o.color : C.line}`,
+                  }}>
+                  <span className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black"
+                    style={{ background: `${o.color}18`, color: o.color }}>{o.icon}</span>
+                  <span>
+                    <span className="text-sm font-bold block" style={{ color: shape === o.key ? o.color : C.textStrong }}>{o.key}</span>
+                    <span className="text-xs" style={{ color: C.textSub }}>{o.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5" style={{ background: C.surface, border: `1px solid ${C.line}` }}>
+            <p className="text-sm font-bold mb-3" style={{ color: C.textBody }}>가장 중요한 느낌</p>
+            <div className="flex gap-3">
+              {MONITOR_USE_OPTIONS.map(o => (
+                <button key={o.key} onClick={() => { includeMonitor(); setUse(o.key); }}
+                  className="flex-1 rounded-xl p-4 text-center transition-all"
+                  style={{
+                    background: use === o.key ? C.primaryLight : C.bg,
+                    border: `2px solid ${use === o.key ? C.primary : C.line}`,
+                    color: use === o.key ? C.primary : C.textBody,
+                  }}>
+                  <span className="text-2xl block mb-2">{o.icon}</span>
+                  <span className="text-sm font-bold block">{o.key}</span>
+                  <span className="text-xs" style={{ color: C.textSub }}>{o.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl p-6 flex flex-col justify-between" style={{ background: "linear-gradient(180deg, #08111f 0%, #10233b 100%)", color: "#fff", minHeight: 420, boxShadow: "0 8px 28px rgba(8,17,31,0.18)" }}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: "#60a5fa" }}>Monitor Preview</p>
+            <div className="mx-auto mb-6" style={{ width: 240 }}>
+              <div style={{
+                height: 140,
+                border: "10px solid #1f2937",
+                borderRadius: shape === "커브드" ? "28px 28px 18px 18px" : 14,
+                background: `linear-gradient(135deg, ${selectedResolution.color}, #34d399)`,
+                boxShadow: shape === "커브드" ? "inset 24px 0 30px rgba(0,0,0,0.24), inset -24px 0 30px rgba(0,0,0,0.24)" : "none",
+              }} />
+              <div className="mx-auto" style={{ width: 42, height: 36, background: "#1f2937" }} />
+              <div className="mx-auto rounded-full" style={{ width: 120, height: 10, background: "#334155" }} />
+            </div>
+            <h2 className="text-2xl font-black mb-2">{resolution} · {shape}</h2>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.68)" }}>
+              {selectedResolution.size} 기준으로 {use}에 맞춰 그래픽카드 성능 여유와 모니터 가격대를 함께 계산합니다.
+            </p>
+          </div>
+          <div className="rounded-xl p-4 mt-6" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+            <p className="text-xs mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>초보자용 해석</p>
+            <p className="text-sm font-semibold">
+              {resolution === "4K" ? "선명함 우선이라 그래픽카드 예산을 넉넉히 잡습니다." : resolution === "QHD" ? "선명함과 가격 균형이 좋아 게임용으로 가장 무난합니다." : "예산을 아끼면서도 대부분의 작업을 편하게 할 수 있습니다."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </BegShell>
+  );
+}
+
+// ── Beg Step 5 (Summary) ───────────────────────────────────────────────────
+function BegStep5({ navigate }: { navigate: (s: Screen) => void }) {
+  const { draft } = useBeginnerDraft();
+  const purposeDetail = getPurposeDetailText(draft);
+  const monitorText = draft.monitorExcluded
+    ? "모니터는 견적에서 제외하고 본체만 최적의 견적으로 조립해 주세요."
+    : `모니터는 [${draft.monitorResolution || "QHD"} 해상도 / ${draft.monitorShape || "평면"} / ${draft.monitorUse || "부드러운 게임"}] 기준으로 최적의 견적을 조립해 주세요.`;
+  const defaultText = `안녕하세요! 저는 PC를 잘 모르는 초급자입니다.\n주 용도는 [${draft.purpose || "미선택"}]이며, 세부 사용은 [${purposeDetail || "미선택"}]입니다.\n예산은 [${draft.budget ? `${draft.budget}만 원` : "미선택"}] 정도이고, 외관은 [${draft.styles.length ? draft.styles.join(", ") : "미선택"}] 스타일입니다.\n${monitorText}\n호환성과 팝콘PC 재고를 반드시 확인해 주세요.`;
   const [text, setText] = useState(defaultText);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -410,18 +731,18 @@ function BegStep4({ navigate }: { navigate: (s: Screen) => void }) {
   const aiIcon: Record<string, string> = { "대기": "○", "분석중": "◐", "완료": "●" };
 
   return (
-    <UserLayout current="beg-step4" navigate={navigate}>
+    <UserLayout current="beg-step5" navigate={navigate}>
       {/* Step header */}
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.line}` }}>
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
-          <BegStepBar current={4} />
-          <span className="text-xs" style={{ color: C.textSub }}>초급자 모드 · 4/4 단계</span>
+          <BegStepBar current={5} />
+          <span className="text-xs" style={{ color: C.textSub }}>초급자 모드 · 5/5 단계</span>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-8 py-10">
         <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: C.primary }}>STEP 4 — 마지막 단계</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: C.primary }}>STEP 5 — 마지막 단계</p>
           <h1 className="text-3xl font-bold" style={{ color: C.textStrong }}>AI 주문서 확인 및 발송</h1>
           <p className="text-sm mt-1.5" style={{ color: C.textSub }}>자동 조합된 주문서를 직접 수정하고, 3대 AI에게 견적을 요청하세요.</p>
         </div>
@@ -485,7 +806,7 @@ function BegStep4({ navigate }: { navigate: (s: Screen) => void }) {
 
         {/* Bottom actions */}
         <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: `1px solid ${C.line}` }}>
-          <button onClick={() => navigate("beg-step3")}
+          <button onClick={() => navigate("beg-step4")}
             className="flex items-center gap-2 px-6 h-11 rounded-xl text-sm font-semibold transition-all"
             style={{ background: C.surface, color: C.textBody, border: `1.5px solid ${C.line}` }}>
             ← 이전 단계
@@ -689,6 +1010,11 @@ function BegResult({ navigate }: { navigate: (s: Screen) => void }) {
 
             {/* Action buttons */}
             <div className="space-y-2">
+              <button onClick={() => navigate("beg-step5")}
+                className="w-full h-11 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: C.bg, color: C.textBody, border: `1.5px solid ${C.line}` }}>
+                ← 이전 단계로 돌아가기
+              </button>
               <button onClick={() => navigate("beg-detail")}
                 className="w-full h-12 rounded-xl text-sm font-semibold transition-all"
                 style={{ background: C.surface, color: C.primary, border: `2px solid ${C.primary}` }}>
@@ -873,4 +1199,4 @@ function BegDetail({ navigate }: { navigate: (s: Screen) => void }) {
 
 // ════════════════════════════════════════════════════════════════════════════
 
-export { BegStep1, BegStep2, BegStep3, BegStep4, BegResult, BegDetail };
+export { BegStep1, BegStep2, BegStep3, BegStep4, BegStep5, BegResult, BegDetail };

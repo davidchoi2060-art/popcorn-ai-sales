@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type React from "react";
 import type { Screen } from "./types";
 import { Landing, AuthModal } from "./screens/landing/LandingScreens";
-import { BegStep1, BegStep2, BegStep3, BegStep4, BegResult, BegDetail } from "./screens/beginner/BeginnerScreens";
+import { BegStep1, BegStep2, BegStep3, BegStep4, BegStep5, BegResult, BegDetail } from "./screens/beginner/BeginnerScreens";
 import { ExpStep1, ExpStep2, ExpStep3, ExpStep4, ExpStep5, ExpResult, ExpDetail } from "./screens/expert/ExpertScreens";
 import { AdmDashboard } from "./screens/admin/AdmDashboard";
 import { AdmProductMaster } from "./screens/admin/AdmProductMaster";
@@ -30,6 +30,7 @@ export default function App() {
     "beg-step2": <BegStep2 navigate={navigate} />,
     "beg-step3": <BegStep3 navigate={navigate} />,
     "beg-step4": <BegStep4 navigate={navigate} />,
+    "beg-step5": <BegStep5 navigate={navigate} />,
     "beg-result": <BegResult navigate={navigate} />,
     "beg-detail": <BegDetail navigate={navigate} />,
     "exp-step1": <ExpStep1 navigate={navigate} />,
