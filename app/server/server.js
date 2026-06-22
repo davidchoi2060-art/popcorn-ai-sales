@@ -7,8 +7,18 @@ import {
   handleAdminProductStatus,
   handleAdminProductUpdate,
 } from "./routes/admin.products.js";
+import {
+  handleAdminSourcingCandidates,
+  handleAdminSourcingConfirm,
+  handleAdminSourcingDelete,
+  handleAdminSourcingList,
+  handleAdminSourcingMatch,
+  handleAdminSourcingParse,
+  handleAdminSourcingUpdate,
+} from "./routes/admin.sourcing.routes.js";
 import { handleGetMarginPolicies, handlePutMarginPolicies } from "./routes/admin.policy.js";
 import { handleRecommend } from "./routes/recommend.js";
+import { getDevHealth } from "./services/dev.service.js";
 
 const PORT = Number(process.env.PORT || 3000);
 
@@ -17,7 +27,7 @@ function sendJson(response, status, body) {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": process.env.CORS_ORIGIN || "http://127.0.0.1:5174",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Guest-UID",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   });
   response.end(JSON.stringify(body));
 }
@@ -41,12 +51,33 @@ const server = http.createServer(async (request, response) => {
     const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
 
     if (request.method === "GET" && url.pathname === "/api/dev/health") {
-      sendJson(response, 200, { success: true, data: { ok: true } });
+      const data = await getDevHealth();
+      sendJson(response, 200, { success: true, data });
       return;
     }
 
     if (request.method === "GET" && url.pathname === "/api/admin/products") {
       const result = await handleAdminProducts(url);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/sourcing") {
+      const result = await handleAdminSourcingList(url);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/admin/sourcing/parse") {
+      const body = await readJson(request);
+      const result = await handleAdminSourcingParse(request, body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/admin/sourcing/confirm") {
+      const body = await readJson(request);
+      const result = await handleAdminSourcingConfirm(body);
       sendJson(response, result.status, result.body);
       return;
     }
@@ -78,6 +109,9 @@ const server = http.createServer(async (request, response) => {
 
     const productMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
     const productStatusMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/status$/);
+    const sourcingItemMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)$/);
+    const sourcingCandidatesMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)\/candidates$/);
+    const sourcingMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)\/match$/);
 
     if (request.method === "GET" && productMatch) {
       const result = await handleAdminProductDetail(decodeURIComponent(productMatch[1]));
@@ -95,6 +129,32 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "PUT" && productStatusMatch) {
       const body = await readJson(request);
       const result = await handleAdminProductStatus(decodeURIComponent(productStatusMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && sourcingCandidatesMatch) {
+      const result = await handleAdminSourcingCandidates(decodeURIComponent(sourcingCandidatesMatch[1]));
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && sourcingMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminSourcingMatch(decodeURIComponent(sourcingMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && sourcingItemMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminSourcingUpdate(decodeURIComponent(sourcingItemMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "DELETE" && sourcingItemMatch) {
+      const result = await handleAdminSourcingDelete(decodeURIComponent(sourcingItemMatch[1]));
       sendJson(response, result.status, result.body);
       return;
     }

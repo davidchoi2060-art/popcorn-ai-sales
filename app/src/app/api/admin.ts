@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from "./client";
+import { apiGet, apiPost, apiPut } from "./client";
 
 export type AdminProductRow = {
   code: string;
@@ -107,6 +107,97 @@ export type AdminMarginPoliciesResponse = {
   };
 };
 
+export type DevHealthResponse = {
+  ok: boolean;
+  api: {
+    ok: boolean;
+    node: string;
+    port: number;
+    mockMode: "mock" | "real";
+    devToolsEnabled: boolean;
+  };
+  db: {
+    ok: boolean;
+    latencyMs: number;
+    host: string;
+    port: number;
+    database: string;
+    error: string | null;
+  };
+  products: {
+    ok: boolean;
+    latencyMs: number;
+    data?: {
+      total: number;
+      categories: number;
+      unknown: number;
+      review_required: number;
+    };
+    error?: string;
+  };
+  policies: {
+    ok: boolean;
+    latencyMs: number;
+    data?: {
+      margin_policy_count: number;
+    };
+    error?: string;
+  };
+};
+
+export type AdminSourcingStatus = "매칭완료" | "후보복수" | "매칭필요" | "검토필요";
+
+export type AdminSourcingCandidate = {
+  productCode: string;
+  productName: string;
+  maker: string;
+  partType?: string;
+  score: number;
+};
+
+export type AdminSourcingItem = {
+  id: string;
+  recordedAt: string;
+  productNameRaw: string;
+  productNameNormalized: string;
+  normalizedPartType: string;
+  requestedQty: number;
+  availableQty: number | null;
+  unitPrice: number | null;
+  bundlePrice: number | null;
+  bundleQty: number | null;
+  vatIncluded: "included" | "excluded" | "unknown";
+  vendorName: string;
+  contactName: string;
+  matchStatus: AdminSourcingStatus;
+  matchedProductCode: string | null;
+  matchCandidates: AdminSourcingCandidate[];
+  confidence: number;
+};
+
+export type AdminSourcingListResponse = {
+  items: AdminSourcingItem[];
+  total: number;
+  page: number;
+};
+
+export type AdminSourcingParseResponse = {
+  batch: {
+    id: string;
+    rawTextMasked: string;
+    parsedAt: string;
+    mode: "mock" | "real";
+  };
+  items: AdminSourcingItem[];
+  warnings: string[];
+};
+
+export type AdminSourcingConfirmResponse = {
+  inserted: number;
+  updated: number;
+  skipped: number;
+};
+
 export function fetchAdminProducts(params: {
   category?: string;
   status?: string;
@@ -149,6 +240,47 @@ export function fetchAdminMarginPolicies() {
   return apiGet<AdminMarginPoliciesResponse>("/api/admin/policy/margin");
 }
 
+export function fetchAdminSourcing(params: {
+  vendor?: string;
+  category?: string;
+  keyword?: string;
+  matchStatus?: string;
+  page?: string;
+}) {
+  return apiGet<AdminSourcingListResponse>("/api/admin/sourcing", {
+    vendor: params.vendor || "",
+    category: params.category || "",
+    keyword: params.keyword || "",
+    match_status: params.matchStatus || "",
+    page: params.page || "1",
+  });
+}
+
+export type AdminSourcingAiProvider = "openai" | "gemini";
+
+export function parseAdminSourcing(rawText: string, options: { useMock?: boolean; provider?: AdminSourcingAiProvider } = {}) {
+  const useMock = options.useMock ?? true;
+  return apiPost<AdminSourcingParseResponse, { raw_text: string; use_mock: boolean; provider?: AdminSourcingAiProvider }>(
+    "/api/admin/sourcing/parse",
+    { raw_text: rawText, use_mock: useMock, provider: options.provider },
+    { timeoutMs: 20000 },
+  );
+}
+
+export function confirmAdminSourcing(batchId: string, items: AdminSourcingItem[]) {
+  return apiPost<AdminSourcingConfirmResponse, { batch_id: string; items: AdminSourcingItem[] }>(
+    "/api/admin/sourcing/confirm",
+    { batch_id: batchId, items },
+  );
+}
+
+export function updateAdminSourcingMatch(id: string, productCode: string) {
+  return apiPut<AdminSourcingItem, { product_code: string; match_status: "matched" }>(
+    `/api/admin/sourcing/${encodeURIComponent(id)}/match`,
+    { product_code: productCode, match_status: "matched" },
+  );
+}
+
 export function updateAdminMarginPolicies(items: Array<{
   category: string;
   baseMarginRate: number;
@@ -156,4 +288,8 @@ export function updateAdminMarginPolicies(items: Array<{
   active: boolean;
 }>) {
   return apiPut<AdminMarginPoliciesResponse, { items: typeof items }>("/api/admin/policy/margin", { items });
+}
+
+export function fetchDevHealth() {
+  return apiGet<DevHealthResponse>("/api/dev/health", {}, { timeoutMs: 5000 });
 }

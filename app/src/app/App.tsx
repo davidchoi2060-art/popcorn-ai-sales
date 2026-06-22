@@ -7,6 +7,7 @@ import { ExpStep1, ExpStep2, ExpStep3, ExpStep4, ExpStep5, ExpResult, ExpDetail 
 import { AdmDashboard } from "./screens/admin/AdmDashboard";
 import { AdmProductMaster } from "./screens/admin/AdmProductMaster";
 import { AdmCsvImport } from "./screens/admin/AdmCsvImport";
+import { AdmSourcing } from "./screens/admin/AdmSourcing";
 import { AdmPricePolicy } from "./screens/admin/AdmPricePolicy";
 import { AdmRecommendWeights } from "./screens/admin/AdmRecommendWeights";
 import { AdmKeywords } from "./screens/admin/AdmKeywords";
@@ -43,6 +44,7 @@ export default function App() {
     "adm-dashboard": <AdmDashboard navigate={navigate} />,
     "adm-product-master": <AdmProductMaster navigate={navigate} />,
     "adm-csv-import": <AdmCsvImport navigate={navigate} />,
+    "adm-sourcing": <AdmSourcing navigate={navigate} />,
     "adm-price-policy": <AdmPricePolicy navigate={navigate} />,
     "adm-recommend-weights": <AdmRecommendWeights navigate={navigate} />,
     "adm-keywords": <AdmKeywords navigate={navigate} />,

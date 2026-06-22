@@ -22,7 +22,7 @@
 
 핵심 원칙은 `_publish/`를 “화면 원본”으로 보존하고, 실제 기능 연동은 `app/`에서 수행하는 것이다. 다만 `_publish`가 React 앱으로 생성되었으므로, 이관 시 화면별 HTML 복사가 아니라 React 앱 구조를 기준으로 편입 전략을 정해야 한다.
 관리자 백오피스는 V3.0부터 기존 AI 비용 관제 중심 구조가 아니라, 실제 운영 우선순위에 맞춘 비즈니스 관리자 구조로 재정렬한다.  
-따라서 `app/` 개발본의 관리자 화면은 `adm-dashboard` → `adm-product-master` → `adm-csv-import` → `adm-price-policy` → `adm-recommend-weights` → `adm-keywords` / `adm-click-report` / `adm-funnel` → `adm-system-limit` → `adm-operators` 순서로 관리한다.
+따라서 `app/` 개발본의 관리자 화면은 `adm-dashboard` → `adm-product-master` → `adm-csv-import` → `adm-sourcing` → `adm-price-policy` → `adm-recommend-weights` → `adm-keywords` / `adm-click-report` / `adm-funnel` → `adm-system-limit` → `adm-operators` 순서로 관리한다.
 
 
 ## 2. 현재 `_publish/` 실제 구조
@@ -162,7 +162,7 @@ npm run dev
 기존의 `_publish/User_Main/*.html` 같은 화면별 파일은 현재 존재하지 않는다. 모든 화면은 `_publish/index.html`에서 시작하고 `_publish/src/app/App.tsx` 또는 개발본 `app/src/app/App.tsx`의 `screenMap`으로 렌더링된다.
 
 사용자 화면은 기존 FR 계열 ID를 유지한다.  
-관리자 화면은 V3.0부터 운영 우선순위를 명확히 하기 위해 `ADM-DSH`, `ADM-PRD`, `ADM-CSV`, `ADM-POL`, `ADM-ANA`, `ADM-SYS`, `ADM-OPS` 계열 ID를 사용한다.
+관리자 화면은 V3.0부터 운영 우선순위를 명확히 하기 위해 `ADM-DSH`, `ADM-PRD`, `ADM-CSV`, `ADM-SRC`, `ADM-POL`, `ADM-ANA`, `ADM-SYS`, `ADM-OPS` 계열 ID를 사용한다.
 
 ### 4.1 게이트 / 랜딩 / 인증 / 사용자 화면
 
@@ -192,6 +192,7 @@ npm run dev
 | ADM-DSH-010 | 통합 비즈니스 & 트렌드 대시보드 | `index.html` | `adm-dashboard` | `AdmDashboard` | `adm-dashboard` 유지 | `GET /api/admin/dashboard/business`, `GET /api/admin/cost` |
 | ADM-PRD-010 | 마스터 상품 검색 및 실시간 품절 스위치 | `index.html` | `adm-product-master` | `AdmProductMaster` | `adm-master`, `adm-product-edit` 대체 | `GET /api/admin/products`, `PUT /api/admin/products/:code/status` |
 | ADM-CSV-010 | 대량 상품 업데이트 CSV 업서트 | `index.html` | `adm-csv-import` | `AdmCsvImport` | `adm-csv` 대체 | `POST /api/admin/products/csv` |
+| ADM-SRC-010 | 제품 소싱 | `index.html` | `adm-sourcing` | `AdmSourcing` | 신규 독립 관리자 메뉴 | `GET /api/admin/sourcing`, `POST /api/admin/sourcing/parse`, `POST /api/admin/sourcing/confirm`, `PUT /api/admin/sourcing/:id/match` |
 | ADM-POL-010 | 부품 가격동향 및 카테고리 마진 통제 | `index.html` | `adm-price-policy` | `AdmPricePolicy` | `adm-category` 대체 | `PUT /api/admin/policy/margin` |
 | ADM-POL-020 | AI 추천 엔진 가중치 제어 | `index.html` | `adm-recommend-weights` | `AdmRecommendWeights` | DevHub 일부 기능 분리 | `PUT /api/admin/policy/weights` |
 | ADM-ANA-010 | 실시간 유저 관심 키워드 및 형태소 관제 | `index.html` | `adm-keywords` | `AdmKeywords` | `adm-keywords` 유지 | `GET /api/analytics/keywords` |
@@ -238,6 +239,7 @@ app/
 │           │   ├── AdmDashboard.tsx
 │           │   ├── AdmProductMaster.tsx
 │           │   ├── AdmCsvImport.tsx
+│           │   ├── AdmSourcing.tsx
 │           │   ├── AdmPricePolicy.tsx
 │           │   ├── AdmRecommendWeights.tsx
 │           │   ├── AdmOperators.tsx
@@ -253,6 +255,7 @@ app/
 │   │   ├── recommend.routes.js
 │   │   ├── admin.dashboard.routes.js
 │   │   ├── admin.products.routes.js
+│   │   ├── admin.sourcing.routes.js
 │   │   ├── admin.policy.routes.js
 │   │   ├── admin.system.routes.js
 │   │   ├── admin.operators.routes.js
@@ -261,6 +264,9 @@ app/
 │   │   ├── product.service.js
 │   │   ├── inventory.service.js
 │   │   ├── csv-upsert.service.js
+│   │   ├── sourcing.service.js
+│   │   ├── sourcing-parser.service.js
+│   │   ├── sourcing-match.service.js
 │   │   ├── policy.service.js
 │   │   ├── dashboard.service.js
 │   │   ├── analytics.service.js
@@ -268,6 +274,7 @@ app/
 │   │   └── operator.service.js
 │   ├── llm/
 │   │   ├── orchestrator.js
+│   │   ├── sourcing-parser.js
 │   │   ├── prompt-builder.js
 │   │   └── mock-response.js
 │   ├── middlewares/
@@ -291,6 +298,7 @@ app/
 | ADM-DSH-010 | `adm-dashboard` | `AdmDashboard` | `app/src/app/screens/admin/AdmDashboard.tsx` |
 | ADM-PRD-010 | `adm-product-master` | `AdmProductMaster` | `app/src/app/screens/admin/AdmProductMaster.tsx` |
 | ADM-CSV-010 | `adm-csv-import` | `AdmCsvImport` | `app/src/app/screens/admin/AdmCsvImport.tsx` |
+| ADM-SRC-010 | `adm-sourcing` | `AdmSourcing` | `app/src/app/screens/admin/AdmSourcing.tsx` |
 | ADM-POL-010 | `adm-price-policy` | `AdmPricePolicy` | `app/src/app/screens/admin/AdmPricePolicy.tsx` |
 | ADM-POL-020 | `adm-recommend-weights` | `AdmRecommendWeights` | `app/src/app/screens/admin/AdmRecommendWeights.tsx` |
 | ADM-ANA-010 | `adm-keywords` | `AdmKeywords` | `app/src/app/screens/admin/AdmKeywords.tsx` |
@@ -308,6 +316,12 @@ app/
 | 상품 검색 | `GET /api/admin/products` | `admin.products.routes.js` | `product.service.js` |
 | 품절/단종 상태 변경 | `PUT /api/admin/products/:code/status` | `admin.products.routes.js` | `inventory.service.js` |
 | CSV 업서트 | `POST /api/admin/products/csv` | `admin.products.routes.js` | `csv-upsert.service.js` |
+| 제품 소싱 목록 | `GET /api/admin/sourcing` | `admin.sourcing.routes.js` | `sourcing.service.js` |
+| 제품 소싱 AI 정제 | `POST /api/admin/sourcing/parse` | `admin.sourcing.routes.js` | `sourcing-parser.service.js`, `llm/sourcing-parser.js` |
+| 제품 소싱 확정 저장 | `POST /api/admin/sourcing/confirm` | `admin.sourcing.routes.js` | `sourcing.service.js`, `sourcing-match.service.js` |
+| 제품 소싱 매칭 수정 | `PUT /api/admin/sourcing/:id/match` | `admin.sourcing.routes.js` | `sourcing-match.service.js` |
+| 제품 소싱 항목 수정 | `PUT /api/admin/sourcing/:id` | `admin.sourcing.routes.js` | `sourcing.service.js` |
+| 제품 소싱 항목 삭제 | `DELETE /api/admin/sourcing/:id` | `admin.sourcing.routes.js` | `sourcing.service.js` |
 | 카테고리 마진 정책 | `PUT /api/admin/policy/margin` | `admin.policy.routes.js` | `policy.service.js` |
 | 추천 가중치 | `PUT /api/admin/policy/weights` | `admin.policy.routes.js` | `policy.service.js` |
 | 키워드 분석 | `GET /api/analytics/keywords` | `analytics.routes.js` | `analytics.service.js` |
@@ -316,6 +330,12 @@ app/
 | Rate Limit | `GET /api/admin/rate-limit`, `PUT /api/admin/rate-limit` | `admin.system.routes.js` | `cost-control.service.js` |
 | 비용 임계치 | `PUT /api/admin/cost/threshold` | `admin.system.routes.js` | `cost-control.service.js` |
 | 운영자 및 권한 관리 | 운영자 초대, 역할 변경, 활성/비활성 처리, 활동 로그 조회 | `admin.operators.routes.js` 예정 | `operator.service.js` 예정 |
+
+### 5.3 제품 소싱 DB 파일 매핑
+
+| DB 영역 | 마이그레이션 파일 | 주요 테이블 |
+|---------|------------------|-------------|
+| 제품 소싱 저장 | `app/db/migrations/006_create_product_sourcing_tables.sql` | `sourcing_batches`, `product_sourcing_quotes`, `product_sourcing_match_candidates` |
 
 ## 6. 이관 규칙 갱신
 
@@ -354,7 +374,7 @@ app/
 | 화면 구현 | 도메인별 HTML 파일 | 화면별 React 컴포넌트 |
 | 스타일 | `assets/css/common.css` | `src/styles/*.css`, Tailwind, 디자인 토큰 |
 | 공통 UI | HTML partial 또는 공통 CSS | `GNB`, `Footer`, `AdminLayout`, `components/ui/*` |
-| 관리자 화면 ID | `FR-ADM-*`, `FR-ANA-*` 혼재 | `ADM-DSH`, `ADM-PRD`, `ADM-CSV`, `ADM-POL`, `ADM-ANA`, `ADM-SYS`, `ADM-OPS` |
+| 관리자 화면 ID | `FR-ADM-*`, `FR-ANA-*` 혼재 | `ADM-DSH`, `ADM-PRD`, `ADM-CSV`, `ADM-SRC`, `ADM-POL`, `ADM-ANA`, `ADM-SYS`, `ADM-OPS` |
 | 관리자 Screen 키 | 기능별 단편 키 | V3.0 운영 우선순위 기반 키 |
 
 ### 7.1 관리자 V3.0 화면 ID 규칙
@@ -366,6 +386,7 @@ app/
 | `ADM-DSH` | 관리자 메인 대시보드 | `ADM-DSH-010` |
 | `ADM-PRD` | 상품 마스터 및 재고 제어 | `ADM-PRD-010` |
 | `ADM-CSV` | CSV 업서트 | `ADM-CSV-010` |
+| `ADM-SRC` | 제품 소싱 | `ADM-SRC-010` |
 | `ADM-POL` | 가격 정책 및 추천 가중치 | `ADM-POL-010` |
 | `ADM-ANA` | 마케팅 및 사용자 행동 분석 | `ADM-ANA-010` |
 | `ADM-SYS` | 시스템 인프라 및 비용 제어 | `ADM-SYS-010` |
@@ -424,14 +445,15 @@ app/
 | 1 | ADM-DSH-010 | `adm-dashboard` | `AdmDashboard.tsx` | 비즈니스·트렌드 메인 대시보드 |
 | 2 | ADM-PRD-010 | `adm-product-master` | `AdmProductMaster.tsx` | 상품 검색, AI 필드 수정, 품절/단종 토글 |
 | 2 | ADM-CSV-010 | `adm-csv-import` | `AdmCsvImport.tsx` | CSV 대량 Upsert |
-| 3 | ADM-POL-010 | `adm-price-policy` | `AdmPricePolicy.tsx` | 카테고리별 마진 정책 |
-| 3 | ADM-POL-020 | `adm-recommend-weights` | `AdmRecommendWeights.tsx` | 재고/마진/가성비 추천 가중치 |
-| 4 | ADM-ANA-010 | `adm-keywords` | `AdmKeywords.tsx` | 자연어 키워드 분석 |
-| 4 | ADM-ANA-020 | `adm-click-report` | `AdmClickReport.tsx` | 스왑 탈락 부품 및 특가 CTR |
-| 4 | ADM-ANA-030 | `adm-funnel` | `AdmFunnel.tsx` | 모드별 전환 퍼널 |
-| 5 | ADM-SYS-010 | `adm-system-limit` | `AdmSystemLimit.tsx` | Rate Limit, 비용 Threshold, Circuit Breaker |
-| 6 | ADM-OPS-010 | `adm-operators` | `AdmOperators.tsx` | 운영자 초대, 역할 권한, 활동 로그 |
-| 5 | DEV-HUB-010 | `dev-hub` | `DevHub.tsx` | 개발 진척도, Mock API, 가상 세션 |
+| 3 | ADM-SRC-010 | `adm-sourcing` | `AdmSourcing.tsx` | 거래처 원문 AI 정제, 소싱가 저장, 상품 마스터 매칭 |
+| 4 | ADM-POL-010 | `adm-price-policy` | `AdmPricePolicy.tsx` | 카테고리별 마진 정책 |
+| 4 | ADM-POL-020 | `adm-recommend-weights` | `AdmRecommendWeights.tsx` | 재고/마진/가성비 추천 가중치 |
+| 5 | ADM-ANA-010 | `adm-keywords` | `AdmKeywords.tsx` | 자연어 키워드 분석 |
+| 5 | ADM-ANA-020 | `adm-click-report` | `AdmClickReport.tsx` | 스왑 탈락 부품 및 특가 CTR |
+| 5 | ADM-ANA-030 | `adm-funnel` | `AdmFunnel.tsx` | 모드별 전환 퍼널 |
+| 6 | ADM-SYS-010 | `adm-system-limit` | `AdmSystemLimit.tsx` | Rate Limit, 비용 Threshold, Circuit Breaker |
+| 7 | ADM-OPS-010 | `adm-operators` | `AdmOperators.tsx` | 운영자 초대, 역할 권한, 활동 로그 |
+| 6 | DEV-HUB-010 | `dev-hub` | `DevHub.tsx` | 개발 진척도, Mock API, 가상 세션 |
 
 ## 11. 최종 Screen 키 변경 요약
 
@@ -443,6 +465,7 @@ app/
 | 상품 마스터 | `adm-master` | `adm-product-master` | 변경 |
 | 상품 개별 수정 | `adm-product-edit` | `adm-product-master` 내부 편집 레이어 | 통합 |
 | CSV 업로드 | `adm-csv` | `adm-csv-import` | 변경 |
+| 제품 소싱 | 신규 | `adm-sourcing` | 독립 관리자 메뉴 추가 |
 | 카테고리 마진/품절 | `adm-category` | `adm-price-policy` | 역할 재정의 |
 | 추천 가중치 | DevHub 일부 | `adm-recommend-weights` | 관리자 정책 화면으로 분리 |
 | 키워드 분석 | `adm-keywords` | `adm-keywords` | 유지 |
@@ -460,6 +483,7 @@ app/src/app/screens/admin/
 ├── AdmDashboard.tsx              ← ADM-DSH-010 / adm-dashboard
 ├── AdmProductMaster.tsx          ← ADM-PRD-010 / adm-product-master
 ├── AdmCsvImport.tsx              ← ADM-CSV-010 / adm-csv-import
+├── AdmSourcing.tsx               ← ADM-SRC-010 / adm-sourcing
 ├── AdmPricePolicy.tsx            ← ADM-POL-010 / adm-price-policy
 ├── AdmRecommendWeights.tsx       ← ADM-POL-020 / adm-recommend-weights
 ├── AdmKeywords.tsx               ← ADM-ANA-010 / adm-keywords

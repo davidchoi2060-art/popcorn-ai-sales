@@ -133,6 +133,13 @@
 | PUT `/api/admin/products/:code` | 상품·연산필드 수정(트랜잭션) | adm-product-master |
 | POST `/api/admin/products/csv` | CSV Upsert(신규 Insert/기존 Update) | adm-csv-import |
 | PUT `/api/admin/products/:code/status` | 품절·단종 토글(1초 내 풀 제외) | adm-product-master |
+| GET `/api/admin/sourcing` | 제품 소싱 목록 조회 | adm-sourcing |
+| POST `/api/admin/sourcing/parse` | 메신저·문자·이메일 원문 AI 정제 | adm-sourcing |
+| POST `/api/admin/sourcing/confirm` | 정제 결과 확정 저장 | adm-sourcing |
+| GET `/api/admin/sourcing/:id/candidates` | 상품 마스터 매칭 후보 조회 | adm-sourcing |
+| PUT `/api/admin/sourcing/:id/match` | 소싱 항목 상품 매칭 수정 | adm-sourcing |
+| PUT `/api/admin/sourcing/:id` | 소싱 항목 수정 | adm-sourcing |
+| DELETE `/api/admin/sourcing/:id` | 소싱 항목 삭제 | adm-sourcing |
 | PUT `/api/admin/policy/margin` | 카테고리 마진율 일괄 | adm-price-policy |
 | PUT `/api/admin/policy/weights` | 전역 추천 가중치(슬라이더) | adm-recommend-weights |
 | GET `/api/admin/cost` | 3사 토큰·원화/달러 비용 집계 | adm-dashboard, adm-system-limit |
@@ -145,6 +152,20 @@
 | GET `/api/admin/operators/activity` | 운영자 활동 로그 조회 | adm-operators |
 
 상품 검색 예시 요청은 `GET /api/admin/products?category=그래픽카드&status=판매중&keyword=RTX&page=1`이며, 응답은 `{ items: [...50건], total, page }` 형식이다. CSV 업로드 응답은 `{ inserted, updated, errors: [...오류행] }`로 정상·오류를 분리 반환한다(EX-ADM-04).
+
+### 6.1 제품 소싱 API
+
+제품 소싱 API는 관리자 권한에서만 호출한다. 모든 응답은 공통 envelope를 사용하며, 원문 `raw_text`에는 개인정보가 포함될 수 있으므로 프론트와 로그에 필요한 범위 이상으로 노출하지 않는다.
+
+`GET /api/admin/sourcing`은 거래처, 카테고리, 기간, VAT, 매칭 상태, 키워드, 페이지 파라미터를 받는다. 성공 응답의 `data`는 `{ items, total, page }` 형식이며, `items`는 최신 `recorded_at` 기준 내림차순이다.
+
+`POST /api/admin/sourcing/parse` 요청 본문은 `{ "raw_text": "...", "use_mock": true, "provider": "gemini" }`이다. `provider`는 Real Mode에서만 사용하며 `gemini`를 기본값으로 하고 `openai`도 허용한다. 외부 LLM 호출 전 반드시 Rate Limit, Cost Guard, Mock Mode, PII Mask 순서를 거친다. Mock Mode가 ON이면 외부 LLM을 호출하지 않고 사전 정의 JSON을 반환한다. Real Mode에서는 `Promise.allSettled`와 7초 타임아웃을 적용하고, JSON 구조 검증에 실패한 모델은 Drop하며 전체 실패 시에만 `LLM_ALL_FAILED`를 반환한다.
+
+파싱 성공 응답의 `data`는 `{ batch, items, warnings }` 형식이다. `items`는 `product_name_raw`, `product_name_normalized`, `normalized_part_type`, `requested_qty`, `available_qty`, `unit_price`, `bundle_price`, `bundle_qty`, `vat_included`, `vendor_name`, `contact_name`, `recorded_at`, `match_status`, `match_candidates`, `confidence`를 포함한다. `product_name_normalized`와 `normalized_part_type`은 AI 결과를 그대로 쓰지 않고 상품 마스터 후보가 있으면 `products.product_name`, `products.part_type` 기준으로 보정한다. 후보가 없으면 운영자가 미리보기에서 상품 마스터 또는 카테고리를 직접 선택한다.
+
+`POST /api/admin/sourcing/confirm`은 파싱 결과를 확정 저장한다. 요청 본문은 `{ "batch_id": "...", "items": [...] }` 형식이며, 성공 응답의 `data`는 `{ inserted, updated, skipped }` 형식이다.
+
+`PUT /api/admin/sourcing/:id/match`는 관리자가 선택한 상품 마스터 매칭을 저장한다. 요청 본문은 `{ "product_code": 123456, "match_status": "matched" }` 형식이다.
 
 ## 7. 분석 API
 

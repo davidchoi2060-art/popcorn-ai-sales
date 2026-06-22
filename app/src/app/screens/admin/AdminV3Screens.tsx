@@ -5,7 +5,17 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import type { Screen } from "../../types";
-import { fetchAdminProducts, type AdminProductRow } from "../../api/admin";
+import {
+  confirmAdminSourcing,
+  fetchAdminProductCategories,
+  fetchAdminProducts,
+  fetchAdminSourcing,
+  parseAdminSourcing,
+  updateAdminSourcingMatch,
+  type AdminProductCategoryOption,
+  type AdminProductRow,
+  type AdminSourcingItem,
+} from "../../api/admin";
 import { C, btn } from "../../constants/design";
 import { AdminLayout } from "../../layouts/AppLayouts";
 import { Card } from "../../components/common/Primitives";
@@ -1655,6 +1665,407 @@ export function AdmSystemLimit({ navigate }: { navigate: (s: Screen) => void }) 
           </div>
         </div>
       )}
+    </AdminLayout>
+  );
+}
+
+// ── adm-sourcing — 제품 소싱 ───────────────────────────────────────────────
+
+function formatWon(value: number | null) {
+  return value === null ? "-" : `${value.toLocaleString()}원`;
+}
+
+function SourcingStatusBadge({ status }: { status: AdminSourcingItem["matchStatus"] }) {
+  const map: Record<AdminSourcingItem["matchStatus"], { bg: string; color: string }> = {
+    매칭완료: { bg: "#e8f5e9", color: C.success },
+    후보복수: { bg: "#fff8e1", color: C.warning },
+    매칭필요: { bg: "#fdecea", color: C.error },
+    검토필요: { bg: C.primaryLight, color: C.primary },
+  };
+  const s = map[status];
+  return <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: s.bg, color: s.color }}>{status}</span>;
+}
+
+export function AdmSourcing({ navigate }: { navigate: (s: Screen) => void }) {
+  const [items, setItems] = useState<AdminSourcingItem[]>([]);
+  const [previewItems, setPreviewItems] = useState<AdminSourcingItem[]>([]);
+  const [batchId, setBatchId] = useState("");
+  const [rawText, setRawText] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [category, setCategory] = useState("");
+  const [matchStatus, setMatchStatus] = useState("");
+  const [aiMode, setAiMode] = useState<"mock" | "openai" | "gemini">("gemini");
+  const [isPastePanelOpen, setIsPastePanelOpen] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState<AdminProductCategoryOption[]>([]);
+  const [productOptions, setProductOptions] = useState<Record<string, AdminProductRow[]>>({});
+  const [productSearch, setProductSearch] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+
+  const loadItems = async () => {
+    const result = await fetchAdminSourcing({ keyword, category, matchStatus });
+    if (result.success) {
+      setItems(result.data.items);
+      return;
+    }
+    setError(result.error.message);
+  };
+
+  useEffect(() => {
+    loadItems();
+    fetchAdminProductCategories().then(result => {
+      if (result.success) setCategoryOptions(result.data.items);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updatePreviewItem = (id: string, patch: Partial<AdminSourcingItem>) => {
+    setPreviewItems(prev => prev.map(item => item.id === id ? { ...item, ...patch } : item));
+  };
+
+  const searchMasterProducts = async (item: AdminSourcingItem) => {
+    const keywordValue = productSearch[item.id] || item.productNameRaw || item.productNameNormalized;
+    const result = await fetchAdminProducts({
+      keyword: keywordValue,
+      category: item.normalizedPartType === "UNKNOWN" ? "" : item.normalizedPartType,
+      status: "판매중",
+      limit: "20",
+    });
+    if (result.success) {
+      setProductOptions(prev => ({ ...prev, [item.id]: result.data.items }));
+      if (result.data.items.length === 0) {
+        setNotice("상품 마스터 검색 결과가 없습니다. 카테고리를 먼저 조정하거나 다른 키워드로 검색하세요.");
+      }
+      return;
+    }
+    setError(result.error.message);
+  };
+
+  const selectMasterProduct = (item: AdminSourcingItem, productCode: string) => {
+    const product =
+      productOptions[item.id]?.find(p => p.code === productCode) ||
+      item.matchCandidates.find(c => c.productCode === productCode);
+    if (!product) return;
+
+    updatePreviewItem(item.id, {
+      productNameNormalized: "name" in product ? product.name : product.productName,
+      normalizedPartType: "catCode" in product ? product.catCode || item.normalizedPartType : product.partType || item.normalizedPartType,
+      matchedProductCode: productCode,
+      matchStatus: "매칭완료",
+      matchCandidates: [{
+        productCode,
+        productName: "name" in product ? product.name : product.productName,
+        maker: product.maker || "",
+        partType: "catCode" in product ? product.catCode : product.partType,
+        score: "score" in product ? product.score : 1,
+      }],
+    });
+  };
+
+  const parseText = async () => {
+    setLoading(true);
+    setError("");
+    setNotice("");
+    const result = await parseAdminSourcing(rawText, {
+      useMock: aiMode === "mock",
+      provider: aiMode === "gemini" ? "gemini" : "openai",
+    });
+    setLoading(false);
+    if (!result.success) {
+      setError(result.error.message);
+      return;
+    }
+    setBatchId(result.data.batch.id);
+    setPreviewItems(result.data.items);
+    setNotice(result.data.warnings[0] || "AI 정제 결과를 확인한 뒤 확정 저장하세요.");
+  };
+
+  const confirmPreview = async () => {
+    if (!batchId || previewItems.length === 0) return;
+    const result = await confirmAdminSourcing(batchId, previewItems);
+    if (!result.success) {
+      setError(result.error.message);
+      return;
+    }
+    setNotice(`${result.data.inserted}건 저장 완료`);
+    setPreviewItems([]);
+    setRawText("");
+    await loadItems();
+  };
+
+  const applyFirstCandidate = async (item: AdminSourcingItem) => {
+    const candidate = item.matchCandidates[0];
+    if (!candidate) return;
+    const result = await updateAdminSourcingMatch(item.id, candidate.productCode);
+    if (!result.success) {
+      setError(result.error.message);
+      return;
+    }
+    setNotice(`${candidate.productName} 매칭 완료`);
+    await loadItems();
+  };
+
+  const visibleItems = items;
+  const matched = items.filter(i => i.matchStatus === "매칭완료").length;
+  const needReview = items.filter(i => i.matchStatus !== "매칭완료").length;
+  const sourcingGridColumns = isPastePanelOpen ? "minmax(0, 7fr) minmax(320px, 3fr)" : "minmax(0, 1fr) 48px";
+
+  return (
+    <AdminLayout current="adm-sourcing" navigate={navigate} breadcrumb="제품 소싱">
+      <AdminPageHeader
+        title="제품 소싱"
+        sub="거래처 대화 원문을 AI로 정제하고 상품 마스터 매칭 후보를 관리합니다."
+      >
+        <button onClick={loadItems} className="h-10 px-4 rounded-lg text-sm font-semibold" style={{ background: C.primaryLight, color: C.primary }}>
+          새로고침
+        </button>
+      </AdminPageHeader>
+
+      <div className="grid grid-cols-4 gap-4 mb-5">
+        <StatCard label="소싱 항목" value={`${items.length}건`} sub="Mock 저장 기준" color={C.primary} />
+        <StatCard label="매칭완료" value={`${matched}건`} sub="상품 마스터 연결" color={C.success} />
+        <StatCard label="검토 필요" value={`${needReview}건`} sub="후보 선택 또는 수동 매칭" color={needReview ? C.warning : C.textSub} />
+        <StatCard
+          label="AI Mode"
+          value={aiMode === "mock" ? "Mock" : aiMode === "gemini" ? "Gemini" : "OpenAI"}
+          sub={aiMode === "mock" ? "외부 LLM 호출 없음" : aiMode === "gemini" ? "Gemini 실호출" : "OpenAI 실호출"}
+          color={aiMode === "mock" ? C.success : C.primary}
+        />
+      </div>
+
+      {(notice || error) && (
+        <div className="mb-4 p-3 rounded-lg text-sm font-semibold" style={{ background: error ? "#fdecea" : "#e8f5e9", color: error ? C.error : C.success }}>
+          {error || notice}
+        </div>
+      )}
+
+      <div className="grid gap-5" style={{ gridTemplateColumns: sourcingGridColumns, transition: "grid-template-columns 160ms ease" }}>
+        <div className="space-y-4 min-w-0">
+          <Card>
+            <div className="grid grid-cols-5 gap-3">
+              <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="제품명 검색"
+                className="h-10 px-3 rounded-lg text-sm col-span-2" style={{ border: `1px solid ${C.line}` }} />
+              <select value={category} onChange={e => setCategory(e.target.value)}
+                className="h-10 px-3 rounded-lg text-sm" style={{ border: `1px solid ${C.line}` }}>
+                <option value="">전체 카테고리</option>
+                <option value="CPU">CPU</option>
+                <option value="GPU">GPU</option>
+                <option value="RAM">RAM</option>
+                <option value="SSD">SSD</option>
+              </select>
+              <select value={matchStatus} onChange={e => setMatchStatus(e.target.value)}
+                className="h-10 px-3 rounded-lg text-sm" style={{ border: `1px solid ${C.line}` }}>
+                <option value="">전체 상태</option>
+                <option value="매칭완료">매칭완료</option>
+                <option value="후보복수">후보복수</option>
+                <option value="매칭필요">매칭필요</option>
+                <option value="검토필요">검토필요</option>
+              </select>
+              <button onClick={loadItems} className="h-10 rounded-lg text-sm font-bold text-white" style={{ background: C.primary }}>조회</button>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold" style={{ color: C.textStrong }}>제품 소싱 목록</h2>
+              <span className="text-xs" style={{ color: C.textSub }}>최신 기록일시 기준</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: `2px solid ${C.line}` }}>
+                    {["기록일시", "제품명", "분류", "수량", "단가", "VAT", "거래처", "매칭", "관리"].map(h => (
+                      <th key={h} className="text-left py-2.5 text-xs font-semibold whitespace-nowrap" style={{ color: C.textSub }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleItems.map(item => (
+                    <tr key={item.id} style={{ borderBottom: `1px solid ${C.line}` }}>
+                      <td className="py-3 text-xs whitespace-nowrap" style={{ color: C.textSub }}>{item.recordedAt}</td>
+                      <td className="py-3 min-w-56">
+                        <p className="font-semibold" style={{ color: C.textBody }}>{item.productNameNormalized}</p>
+                        <p className="text-xs" style={{ color: C.textSub }}>{item.productNameRaw}</p>
+                      </td>
+                      <td className="py-3 font-semibold" style={{ color: C.primary }}>{item.normalizedPartType}</td>
+                      <td className="py-3">{item.availableQty ?? "-"} / {item.requestedQty}</td>
+                      <td className="py-3 font-semibold">{formatWon(item.unitPrice)}</td>
+                      <td className="py-3 text-xs">{item.vatIncluded === "included" ? "포함" : item.vatIncluded === "excluded" ? "별도" : "미확인"}</td>
+                      <td className="py-3">{item.vendorName}</td>
+                      <td className="py-3"><SourcingStatusBadge status={item.matchStatus} /></td>
+                      <td className="py-3">
+                        <button onClick={() => applyFirstCandidate(item)} disabled={!item.matchCandidates.length}
+                          className="h-8 px-3 rounded text-xs font-semibold disabled:opacity-40"
+                          style={{ background: C.primaryLight, color: C.primary }}>
+                          후보 적용
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {visibleItems.length === 0 && (
+                    <tr>
+                      <td colSpan={9} className="py-10 text-center text-sm" style={{ color: C.textSub }}>소싱 항목이 없습니다.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+
+        <aside className="relative min-w-0">
+          <button
+            type="button"
+            onClick={() => setIsPastePanelOpen(prev => !prev)}
+            aria-label={isPastePanelOpen ? "원문 패널 접기" : "원문 패널 펼치기"}
+            title={isPastePanelOpen ? "원문 패널 접기" : "원문 패널 펼치기"}
+            className="absolute top-1/2 -left-3 z-20 h-10 w-6 -translate-y-1/2 rounded-full text-xs font-bold shadow"
+            style={{ background: C.surface, color: C.primary, border: `1px solid ${C.line}` }}
+          >
+            {isPastePanelOpen ? ">" : "<"}
+          </button>
+
+          {!isPastePanelOpen ? (
+            <button
+              type="button"
+              onClick={() => setIsPastePanelOpen(true)}
+              className="sticky top-4 flex h-72 w-full items-center justify-center rounded-lg text-xs font-bold shadow-sm"
+              style={{ background: C.surface, color: C.primary, border: `1px solid ${C.line}` }}
+            >
+              <span style={{ writingMode: "vertical-rl" }}>원문 붙여넣기</span>
+            </button>
+          ) : (
+            <div className="space-y-4 min-w-0">
+              <Card>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-bold" style={{ color: C.textStrong }}>원문 붙여넣기</h2>
+                  <select
+                    value={aiMode}
+                    onChange={e => setAiMode(e.target.value as typeof aiMode)}
+                    className="h-8 px-2 rounded-lg text-xs font-semibold"
+                    style={{ border: `1px solid ${C.line}`, color: C.textBody }}
+                  >
+                    <option value="mock">Mock</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Gemini</option>
+                  </select>
+                </div>
+                <textarea value={rawText} onChange={e => setRawText(e.target.value)}
+                  placeholder="거래처 메신저, 문자, 이메일 내용을 붙여넣으세요."
+                  className="w-full h-56 p-3 rounded-lg text-sm resize-none"
+                  style={{ border: `1px solid ${C.line}`, outline: "none" }} />
+                <button onClick={parseText} disabled={loading || !rawText.trim()}
+                  className="w-full h-11 mt-3 rounded-lg text-sm font-bold text-white disabled:opacity-50"
+                  style={{ background: C.primary }}>
+                  {loading ? "정제 중..." : "AI 정제"}
+                </button>
+                <p className="text-xs mt-2" style={{ color: C.textSub }}>
+                  {aiMode === "mock"
+                    ? "Mock Mode ON 상태로 외부 LLM을 호출하지 않습니다."
+                    : aiMode === "gemini"
+                      ? "Gemini API를 호출합니다. 서버 환경변수 GEMINI_API_KEY가 필요합니다."
+                      : "OpenAI API를 호출합니다. 서버 환경변수 OPENAI_API_KEY가 필요합니다."}
+                </p>
+              </Card>
+
+              <Card>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-bold" style={{ color: C.textStrong }}>정제 결과 미리보기</h2>
+                  <button onClick={confirmPreview} disabled={!previewItems.length}
+                    className="h-8 px-3 rounded text-xs font-bold text-white disabled:opacity-40"
+                    style={{ background: C.success }}>
+                    확정 저장
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {previewItems.map(item => (
+                    <div key={item.id} className="p-3 rounded-lg" style={{ background: C.bg, border: `1px solid ${C.line}` }}>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <p className="text-sm font-bold truncate" style={{ color: C.textStrong }}>{item.productNameNormalized}</p>
+                        <SourcingStatusBadge status={item.matchStatus} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: C.textSub }}>
+                        <span>{item.normalizedPartType}</span>
+                        <span>{formatWon(item.unitPrice)}</span>
+                        <span>수량 {item.availableQty ?? "-"} / {item.requestedQty}</span>
+                        <span>{item.vendorName}</span>
+                      </div>
+                      <div className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${C.line}` }}>
+                        <select
+                          value={item.normalizedPartType}
+                          onChange={e => updatePreviewItem(item.id, { normalizedPartType: e.target.value })}
+                          className="w-full h-9 px-2 rounded-lg text-xs"
+                          style={{ border: `1px solid ${C.line}`, background: C.surface }}
+                        >
+                          <option value="UNKNOWN">카테고리 선택 필요</option>
+                          {categoryOptions.map(option => (
+                            <option key={`${option.group}-${option.value}`} value={option.value}>
+                              {option.groupLabel} / {option.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        {item.matchCandidates.length > 0 && (
+                          <select
+                            value={item.matchedProductCode || ""}
+                            onChange={e => selectMasterProduct(item, e.target.value)}
+                            className="w-full h-9 px-2 rounded-lg text-xs"
+                            style={{ border: `1px solid ${C.line}`, background: C.surface }}
+                          >
+                            <option value="">상품 마스터 후보 선택</option>
+                            {item.matchCandidates.map(candidate => (
+                              <option key={candidate.productCode} value={candidate.productCode}>
+                                {candidate.productName} ({candidate.maker || "제조사 미상"})
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        <div className="flex gap-2">
+                          <input
+                            value={productSearch[item.id] || ""}
+                            onChange={e => setProductSearch(prev => ({ ...prev, [item.id]: e.target.value }))}
+                            placeholder="상품 마스터 검색어"
+                            className="min-w-0 flex-1 h-9 px-2 rounded-lg text-xs"
+                            style={{ border: `1px solid ${C.line}`, background: C.surface }}
+                          />
+                          <button
+                            onClick={() => searchMasterProducts(item)}
+                            className="h-9 px-3 rounded-lg text-xs font-bold text-white shrink-0"
+                            style={{ background: C.primary }}
+                          >
+                            검색
+                          </button>
+                        </div>
+
+                        {(productOptions[item.id] || []).length > 0 && (
+                          <select
+                            value={item.matchedProductCode || ""}
+                            onChange={e => selectMasterProduct(item, e.target.value)}
+                            className="w-full h-9 px-2 rounded-lg text-xs"
+                            style={{ border: `1px solid ${C.line}`, background: C.surface }}
+                          >
+                            <option value="">검색 결과에서 상품 선택</option>
+                            {productOptions[item.id].map(product => (
+                              <option key={product.code} value={product.code}>
+                                {product.name} / {product.cat}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {previewItems.length === 0 && (
+                    <p className="py-8 text-center text-sm" style={{ color: C.textSub }}>AI 정제 후 결과가 표시됩니다.</p>
+                  )}
+                </div>
+              </Card>
+            </div>
+          )}
+        </aside>
+      </div>
     </AdminLayout>
   );
 }

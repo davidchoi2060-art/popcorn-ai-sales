@@ -73,24 +73,26 @@
 
 1. 운영자 메인 컨트롤 타워
 2. 상품 마스터 및 재고 제어
-3. 가격 정책 및 추천 가중치 제어
-4. 마케팅 및 사용자 행동 분석
-5. 시스템 인프라 및 개발 특수 제어
-6. 운영과 관리
+3. 제품 소싱
+4. 가격 정책 및 추천 가중치 제어
+5. 마케팅 및 사용자 행동 분석
+6. 시스템 인프라 및 개발 특수 제어
+7. 운영자 관리
 
 | 단계 | 화면명 | 화면 ID | `_publish` 진입점 | Screen 키 | React 컴포넌트 | 주요 API |
 |------|--------|---------|------------------|-----------|----------------|----------|
 | 1 | 통합 비즈니스 & 트렌드 대시보드 | ADM-DSH-010 | `index.html` | `adm-dashboard` | `AdmDashboard` | `GET /api/admin/dashboard/business`, `GET /api/admin/cost` |
 | 2 | 마스터 상품 검색 및 실시간 품절 스위치 | ADM-PRD-010 | `index.html` | `adm-product-master` | `AdmProductMaster` | `GET /api/admin/products`, `PUT /api/admin/products/:code/status` |
 | 2 | 대량 상품 업데이트 CSV 업서트 | ADM-CSV-010 | `index.html` | `adm-csv-import` | `AdmCsvImport` | `POST /api/admin/products/csv` |
-| 3 | 부품 가격동향 및 카테고리 마진 통제 | ADM-POL-010 | `index.html` | `adm-price-policy` | `AdmPricePolicy` | `PUT /api/admin/policy/margin` |
-| 3 | AI 추천 엔진 가중치 제어 | ADM-POL-020 | `index.html` | `adm-recommend-weights` | `AdmRecommendWeights` | `PUT /api/admin/policy/weights` |
-| 4 | 실시간 유저 관심 키워드 및 형태소 관제 | ADM-ANA-010 | `index.html` | `adm-keywords` | `AdmKeywords` | `GET /api/analytics/keywords` |
-| 4 | 부품 스왑 및 특가 클릭률 리포트 | ADM-ANA-020 | `index.html` | `adm-click-report` | `AdmClickReport` | `GET /api/analytics/swap-report` |
-| 4 | 초보자/고급자 모드별 퍼널 이탈 관제 | ADM-ANA-030 | `index.html` | `adm-funnel` | `AdmFunnel` | `GET /api/analytics/funnel` |
-| 5 | AI 비용 제어 및 트래픽 서킷 브레이커 | ADM-SYS-010 | `index.html` | `adm-system-limit` | `AdmSystemLimit` | `GET /api/admin/rate-limit`, `PUT /api/admin/rate-limit`, `PUT /api/admin/cost/threshold` |
-| 5 | 통합 개발 진척도 허브 | DEV-HUB-010 | `index.html` | `dev-hub` | `DevHub` | 개발/검수 전용 |
-| 6 | 운영자 및 권한 관리 | ADM-OPS-010 | `index.html` | `adm-operators` | `AdmOperators` | 운영자 계정·권한 관리 API 예정 |
+| 3 | 제품 소싱 | ADM-SRC-010 | `index.html` | `adm-sourcing` | `AdmSourcing` | `GET /api/admin/sourcing`, `POST /api/admin/sourcing/parse`, `POST /api/admin/sourcing/confirm`, `PUT /api/admin/sourcing/:id/match` |
+| 4 | 부품 가격동향 및 카테고리 마진 통제 | ADM-POL-010 | `index.html` | `adm-price-policy` | `AdmPricePolicy` | `PUT /api/admin/policy/margin` |
+| 4 | AI 추천 엔진 가중치 제어 | ADM-POL-020 | `index.html` | `adm-recommend-weights` | `AdmRecommendWeights` | `PUT /api/admin/policy/weights` |
+| 5 | 실시간 유저 관심 키워드 및 형태소 관제 | ADM-ANA-010 | `index.html` | `adm-keywords` | `AdmKeywords` | `GET /api/analytics/keywords` |
+| 5 | 부품 스왑 및 특가 클릭률 리포트 | ADM-ANA-020 | `index.html` | `adm-click-report` | `AdmClickReport` | `GET /api/analytics/swap-report` |
+| 5 | 초보자/고급자 모드별 퍼널 이탈 관제 | ADM-ANA-030 | `index.html` | `adm-funnel` | `AdmFunnel` | `GET /api/analytics/funnel` |
+| 6 | AI 비용 제어 및 트래픽 서킷 브레이커 | ADM-SYS-010 | `index.html` | `adm-system-limit` | `AdmSystemLimit` | `GET /api/admin/rate-limit`, `PUT /api/admin/rate-limit`, `PUT /api/admin/cost/threshold` |
+| 6 | 통합 개발 진척도 허브 | DEV-HUB-010 | `index.html` | `dev-hub` | `DevHub` | 개발/검수 전용 |
+| 7 | 운영자 및 권한 관리 | ADM-OPS-010 | `index.html` | `adm-operators` | `AdmOperators` | 운영자 계정·권한 관리 API 예정 |
 
 
 ## 3. 사용자 라우팅 흐름
@@ -123,7 +125,7 @@ landing
 adm-dashboard
  ├─ [실시간 견적 피드 확인]
  ├─ [특가 CTR / 키워드 / 가격동향 확인]
- ├─ [AI 비용 미니 위젯 확인] │ ├─→ adm-product-master │ ├─ 상품 검색 │ ├─ AI 호환성 정형 필드 수정 │ └─ 품절/단종 1초 차단 토글 │ ├─→ adm-csv-import │ └─ 00.상품다운.csv Upsert 및 오류 행 리포트 │ ├─→ adm-price-policy │ └─ 카테고리별 마진율 조정 │ ├─→ adm-recommend-weights │ └─ 재고소진/마진극대/가성비 추천 가중치 조정 │ ├─→ adm-keywords ├─→ adm-click-report ├─→ adm-funnel │ ├─→ adm-system-limit ├─ Rate Limit 정책 ├─ AI 비용 Threshold └─ Circuit Breaker │ └─→ adm-operators ├─ 운영자 초대 ├─ 역할 권한 관리 └─ 활동 로그 확인
+ ├─ [AI 비용 미니 위젯 확인] │ ├─→ adm-product-master │ ├─ 상품 검색 │ ├─ AI 호환성 정형 필드 수정 │ └─ 품절/단종 1초 차단 토글 │ ├─→ adm-csv-import │ └─ 00.상품다운.csv Upsert 및 오류 행 리포트 │ ├─→ adm-sourcing │ ├─ 거래처 원문 붙여넣기 │ ├─ AI 제품·가격 정제 │ └─ 상품 마스터 매칭 │ ├─→ adm-price-policy │ └─ 카테고리별 마진율 조정 │ ├─→ adm-recommend-weights │ └─ 재고소진/마진극대/가성비 추천 가중치 조정 │ ├─→ adm-keywords ├─→ adm-click-report ├─→ adm-funnel │ ├─→ adm-system-limit ├─ Rate Limit 정책 ├─ AI 비용 Threshold └─ Circuit Breaker │ └─→ adm-operators ├─ 운영자 초대 ├─ 역할 권한 관리 └─ 활동 로그 확인
 ```
 
 ### 3.4 개발 허브 동선
@@ -156,10 +158,11 @@ landing 또는 GNB DEV 버튼
 |----------|----------------|-----------|----------|
 | 메인 대시보드 | `adm-dashboard` | `adm-dashboard` | 1 |
 | 상품/재고 | `adm-product-master`, `adm-csv-import` | `adm-product-master` | 2 |
-| 가격/정책 | `adm-price-policy`, `adm-recommend-weights` | `adm-price-policy` | 3 |
-| 마케팅 분석 | `adm-keywords`, `adm-click-report`, `adm-funnel` | `adm-keywords` | 4 |
-| 운영과 관리 | `adm-operators` | `adm-operators` | 6 |
-| 시스템 제어 | `adm-system-limit`, `dev-hub` | `adm-system-limit` | 5 |
+| 제품 소싱 | `adm-sourcing` | `adm-sourcing` | 3 |
+| 가격/정책 | `adm-price-policy`, `adm-recommend-weights` | `adm-price-policy` | 4 |
+| 마케팅 분석 | `adm-keywords`, `adm-click-report`, `adm-funnel` | `adm-keywords` | 5 |
+| 시스템 제어 | `adm-system-limit`, `dev-hub` | `adm-system-limit` | 6 |
+| 운영자 관리 | `adm-operators` | `adm-operators` | 7 |
 
 
 ## 5. `_publish` 기준 링크 정책
@@ -215,6 +218,8 @@ landing 또는 GNB DEV 버튼
 5. 3사 AI 비용 미니 위젯
 
 상품 마스터 및 재고 제어는 2단계 최우선 운영 레이어로 격상한다. `adm-product-master`에서 상품 상태를 `품절` 또는 `단종`으로 변경하면 1초 이내에 AI 추천 연산 풀과 부품 스왑 대안 목록에서 해당 상품이 완전히 제외되어야 한다.
+
+제품 소싱은 `상품/재고` 하위가 아니라 독립 관리자 메뉴로 관리한다. `adm-sourcing`은 거래처 메신저·문자·이메일 원문을 AI로 정제해 제품명, 수량, 단가, VAT, 거래처, 기록일시를 구조화하고 상품 마스터 매칭 후보를 관리한다.
 
 기존 관리자 Screen 키 중 다음 항목은 V3.0에서 대체된다.
 
