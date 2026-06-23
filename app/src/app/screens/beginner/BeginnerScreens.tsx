@@ -11,6 +11,9 @@ import { requestRecommendation } from "../../api/recommend";
 
 type BeginnerDraft = {
   purpose: string;
+  primaryPurpose: string;
+  additionalPurposes: string[];
+  purposeDetails: Record<string, string[]>;
   games: string[];
   customGame: string;
   details: string[];
@@ -26,6 +29,9 @@ type BeginnerDraft = {
 const BEGINNER_DRAFT_KEY = "popcorn-beginner-draft";
 const DEFAULT_BEGINNER_DRAFT: BeginnerDraft = {
   purpose: "",
+  primaryPurpose: "",
+  additionalPurposes: [],
+  purposeDetails: {},
   games: [],
   customGame: "",
   details: [],
@@ -38,11 +44,29 @@ const DEFAULT_BEGINNER_DRAFT: BeginnerDraft = {
   monitorExcluded: false,
 };
 
+function normalizePurposeKey(purpose: string) {
+  const legacyMap: Record<string, string> = {
+    "사무용": "문서·인터넷",
+    "게임용": "인기 게임",
+    "영상편집용": "유튜브 영상 편집",
+    "인터넷방송용": "방송·녹화·스트리밍",
+  };
+  return legacyMap[purpose] ?? purpose;
+}
+
 function readBeginnerDraft(): BeginnerDraft {
   if (typeof window === "undefined") return DEFAULT_BEGINNER_DRAFT;
   try {
     const raw = window.sessionStorage.getItem(BEGINNER_DRAFT_KEY);
-    return raw ? { ...DEFAULT_BEGINNER_DRAFT, ...JSON.parse(raw) } : DEFAULT_BEGINNER_DRAFT;
+    if (!raw) return DEFAULT_BEGINNER_DRAFT;
+    const saved = { ...DEFAULT_BEGINNER_DRAFT, ...JSON.parse(raw) };
+    const primaryPurpose = normalizePurposeKey(saved.primaryPurpose || saved.purpose || "");
+    const additionalPurposes = saved.additionalPurposes.map(normalizePurposeKey);
+    const purposeDetails = { ...saved.purposeDetails };
+    if (primaryPurpose && !purposeDetails[primaryPurpose]?.length) {
+      purposeDetails[primaryPurpose] = isGamePurpose(primaryPurpose) ? saved.games : saved.details;
+    }
+    return { ...saved, purpose: primaryPurpose, primaryPurpose, additionalPurposes, purposeDetails };
   } catch {
     return DEFAULT_BEGINNER_DRAFT;
   }
@@ -61,10 +85,40 @@ function useBeginnerDraft() {
 }
 
 function getPurposeDetailText(draft: BeginnerDraft) {
-  if (draft.purpose === "게임용") {
-    return [...draft.games, draft.customGame.trim()].filter(Boolean).join(", ");
+  const selectedPurposes = getSelectedPurposes(draft);
+  if (!selectedPurposes.length) {
+    if (draft.purpose === "게임용") {
+      return [...draft.games, draft.customGame.trim()].filter(Boolean).join(", ");
+    }
+    return draft.details.join(", ");
   }
-  return draft.details.join(", ");
+  return formatPurposeDetails(selectedPurposes, draft.purposeDetails, draft.customGame);
+}
+
+function getSelectedPurposes(draft: BeginnerDraft) {
+  return [draft.primaryPurpose || draft.purpose, ...draft.additionalPurposes].filter((p, i, arr) => p && arr.indexOf(p) === i);
+}
+
+function getPurposeText(draft: BeginnerDraft) {
+  const selectedPurposes = getSelectedPurposes(draft);
+  if (!selectedPurposes.length) return "";
+  const [primary, ...additional] = selectedPurposes;
+  return additional.length ? `${primary} 중심, 추가로 ${additional.join(", ")}` : primary;
+}
+
+function isGamePurpose(purpose: string) {
+  return ["가벼운 게임", "인기 게임", "고사양 3D 게임"].includes(purpose);
+}
+
+function formatPurposeDetails(purposes: string[], purposeDetails: Record<string, string[]>, customGame: string) {
+  return purposes
+    .map(purpose => {
+      const details = [...(purposeDetails[purpose] ?? [])];
+      if (isGamePurpose(purpose) && customGame.trim()) details.push(customGame.trim());
+      return details.length ? `${purpose}: ${details.join(", ")}` : "";
+    })
+    .filter(Boolean)
+    .join(" / ");
 }
 
 const BEG_STEPS = [
@@ -197,10 +251,14 @@ function BegShell({ step, navigate, title, subtitle, promptText, promptKeys, onP
 
 // ── Beg Step 1 ─────────────────────────────────────────────────────────────
 const PURPOSE_OPTIONS = [
-  { key: "사무용", icon: "💼", desc: "문서 작업·웹서핑·화상회의", color: "#1565c0", bg: "#e3f2fd", img: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=300&h=160&fit=crop&auto=format" },
-  { key: "게임용", icon: "🎮", desc: "FPS·RPG·배틀로얄 게임", color: "#6a1b9a", bg: "#f3e5f5", img: "https://images.unsplash.com/photo-1626218174358-7769486c4b79?w=300&h=160&fit=crop&auto=format" },
-  { key: "영상편집용", icon: "🎬", desc: "4K 편집·렌더링·After Effects", color: "#bf360c", bg: "#fbe9e7", img: "https://images.unsplash.com/photo-1619597455322-4fbbd820250a?w=300&h=160&fit=crop&auto=format" },
-  { key: "인터넷방송용", icon: "📡", desc: "게임 원컴방송·스트리밍", color: "#2e7d32", bg: "#e8f5e9", img: "https://images.unsplash.com/photo-1614179924047-e1ab49a0a0cf?w=300&h=160&fit=crop&auto=format" },
+  { key: "문서·인터넷", icon: "💼", desc: "문서, 웹서핑, 쇼핑, 은행 업무", color: "#1565c0", bg: "#e3f2fd", img: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=300&h=160&fit=crop&auto=format" },
+  { key: "온라인 수업·화상회의", icon: "🎥", desc: "줌, 팀즈, 웹캠 회의, 인터넷 강의", color: "#00838f", bg: "#e0f7fa", img: "https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=300&h=160&fit=crop&auto=format" },
+  { key: "주식·멀티창 작업", icon: "📊", desc: "차트, 여러 창, 듀얼 모니터", color: "#2e7d32", bg: "#e8f5e9", img: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=300&h=160&fit=crop&auto=format" },
+  { key: "가벼운 게임", icon: "🎮", desc: "롤, 메이플, 피파 같은 게임", color: "#5e35b1", bg: "#ede7f6", img: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=300&h=160&fit=crop&auto=format" },
+  { key: "인기 게임", icon: "🕹️", desc: "배그, 로스트아크, 오버워치", color: "#6a1b9a", bg: "#f3e5f5", img: "https://images.unsplash.com/photo-1626218174358-7769486c4b79?w=300&h=160&fit=crop&auto=format" },
+  { key: "고사양 3D 게임", icon: "⚡", desc: "QHD·4K, 높은 그래픽 옵션", color: "#ad1457", bg: "#fce4ec", img: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=300&h=160&fit=crop&auto=format" },
+  { key: "유튜브 영상 편집", icon: "🎬", desc: "컷편집, 자막, 4K 영상 작업", color: "#bf360c", bg: "#fbe9e7", img: "https://images.unsplash.com/photo-1619597455322-4fbbd820250a?w=300&h=160&fit=crop&auto=format" },
+  { key: "방송·녹화·스트리밍", icon: "📡", desc: "게임 방송, 녹화, 송출", color: "#455a64", bg: "#eceff1", img: "https://images.unsplash.com/photo-1614179924047-e1ab49a0a0cf?w=300&h=160&fit=crop&auto=format" },
 ];
 
 const GAME_OPTIONS = [
@@ -211,19 +269,31 @@ const GAME_OPTIONS = [
 ];
 
 const PURPOSE_DETAIL_OPTIONS: Record<string, { key: string; icon: string; desc: string }[]> = {
-  사무용: [
+  "문서·인터넷": [
     { key: "문서·엑셀 위주", icon: "📄", desc: "오피스, 세금계산서, 업무 문서" },
-    { key: "화상회의 많음", icon: "🎥", desc: "줌, 팀즈, 웹캠 회의" },
-    { key: "여러 창 동시 사용", icon: "🧩", desc: "브라우저 탭과 업무 프로그램 병행" },
+    { key: "인터넷 창 여러 개", icon: "🌐", desc: "검색, 쇼핑, 메일 동시 사용" },
     { key: "조용한 PC 선호", icon: "🔇", desc: "소음 적은 사무 환경" },
+    { key: "가성비 우선", icon: "💰", desc: "필요한 만큼만 합리적으로" },
   ],
-  영상편집용: [
+  "온라인 수업·화상회의": [
+    { key: "화상회의 많음", icon: "🎥", desc: "줌, 팀즈, 웹캠 회의" },
+    { key: "인터넷 강의", icon: "🎓", desc: "강의 시청과 과제 작업" },
+    { key: "마이크·카메라 사용", icon: "🎙️", desc: "웹캠과 음성 장비 연결" },
+    { key: "조용한 PC 선호", icon: "🔇", desc: "수업과 회의 중 소음 최소화" },
+  ],
+  "주식·멀티창 작업": [
+    { key: "여러 창 동시 사용", icon: "🧩", desc: "브라우저 탭과 업무 프로그램 병행" },
+    { key: "듀얼 모니터", icon: "🖥️", desc: "모니터 2대 이상 연결" },
+    { key: "차트·HTS 사용", icon: "📈", desc: "주식 차트와 거래 프로그램" },
+    { key: "빠른 반응 우선", icon: "⚡", desc: "버벅임 없이 즉각적인 작업" },
+  ],
+  "유튜브 영상 편집": [
     { key: "유튜브 영상 편집", icon: "▶️", desc: "일반 영상 컷편집과 자막" },
     { key: "4K 영상 편집", icon: "🎞️", desc: "고해상도 원본과 프리뷰" },
     { key: "숏폼·간단 편집", icon: "📱", desc: "릴스, 쇼츠, 틱톡 영상" },
     { key: "사진·디자인 병행", icon: "🎨", desc: "포토샵, 일러스트 작업" },
   ],
-  인터넷방송용: [
+  "방송·녹화·스트리밍": [
     { key: "게임 방송", icon: "🎮", desc: "게임 플레이와 송출 동시 진행" },
     { key: "얼굴캠·토크 방송", icon: "🎙️", desc: "캠, 마이크, 채팅 중심" },
     { key: "녹화 후 편집까지", icon: "✂️", desc: "방송 저장본 편집 포함" },
@@ -233,105 +303,158 @@ const PURPOSE_DETAIL_OPTIONS: Record<string, { key: string; icon: string; desc: 
 
 function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
   const { draft, updateDraft } = useBeginnerDraft();
-  const [purpose, setPurpose] = useState(draft.purpose);
-  const [games, setGames] = useState<string[]>(draft.games);
+  const [primaryPurpose, setPrimaryPurpose] = useState(draft.primaryPurpose || draft.purpose);
+  const [additionalPurposes, setAdditionalPurposes] = useState<string[]>(draft.additionalPurposes);
+  const [purposeDetails, setPurposeDetails] = useState<Record<string, string[]>>(draft.purposeDetails);
   const [customGame, setCustomGame] = useState(draft.customGame);
-  const [details, setDetails] = useState<string[]>(draft.details);
-  const selectedPurpose = PURPOSE_OPTIONS.find(p => p.key === purpose);
-  const detailOptions = purpose === "게임용" ? GAME_OPTIONS : PURPOSE_DETAIL_OPTIONS[purpose] ?? [];
+  const selectedPurposes = [primaryPurpose, ...additionalPurposes].filter(Boolean);
+  const selectedPurposeText = primaryPurpose
+    ? additionalPurposes.length ? `${primaryPurpose} 중심, 추가로 ${additionalPurposes.join(", ")}` : primaryPurpose
+    : "";
+  const selectedDetailText = formatPurposeDetails(selectedPurposes, purposeDetails, customGame);
+  const hasGamePurpose = selectedPurposes.some(isGamePurpose);
 
-  const selectPurpose = (p: string) => {
-    setPurpose(p);
-    setDetails([]);
-    if (p !== "게임용") {
-      setGames([]);
-      setCustomGame("");
-    }
+  const selectPrimaryPurpose = (p: string) => {
+    setPrimaryPurpose(p);
+    setAdditionalPurposes(prev => prev.filter(x => x !== p));
   };
 
-  const toggleGame = (g: string) => setGames(p => p.includes(g) ? p.filter(x => x !== g) : [...p, g]);
-  const toggleDetail = (d: string) => setDetails(p => p.includes(d) ? p.filter(x => x !== d) : [...p, d]);
-  const selectedDetailText = purpose === "게임용"
-    ? [...games, customGame.trim()].filter(Boolean).join(", ")
-    : details.join(", ");
+  const toggleAdditionalPurpose = (p: string) => {
+    if (p === primaryPurpose) return;
+    setAdditionalPurposes(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+  };
+
+  const togglePurposeDetail = (purpose: string, detail: string) => {
+    setPurposeDetails(prev => {
+      const current = prev[purpose] ?? [];
+      const next = current.includes(detail) ? current.filter(x => x !== detail) : [...current, detail];
+      return { ...prev, [purpose]: next };
+    });
+  };
 
   useEffect(() => {
-    updateDraft({ purpose, games, customGame, details });
-  }, [purpose, games, customGame, details]);
+    const games = selectedPurposes
+      .filter(isGamePurpose)
+      .flatMap(p => purposeDetails[p] ?? []);
+    const details = selectedPurposes
+      .filter(p => !isGamePurpose(p))
+      .flatMap(p => purposeDetails[p] ?? []);
+    updateDraft({
+      purpose: primaryPurpose,
+      primaryPurpose,
+      additionalPurposes,
+      purposeDetails,
+      games,
+      customGame,
+      details,
+    });
+  }, [primaryPurpose, additionalPurposes, purposeDetails, customGame]);
 
   return (
     <BegShell
       step={1} navigate={navigate}
       title="어떤 용도로 쓰실 PC인가요?"
-      subtitle="주 목적 하나를 선택해 주세요. AI가 맞춤 사양을 자동으로 설계합니다."
+      subtitle="가장 많이 할 일을 주 용도로 고르고, 가끔 같이 할 일은 추가로 선택해 주세요."
       promptText="주 용도는 [purpose]이며, 세부 사용은 [detail]입니다. 팝콘PC의 최적 부품으로 견적을 조립해 주세요."
-      promptKeys={{ purpose: purpose || "?", detail: selectedDetailText || "?" }}
+      promptKeys={{ purpose: selectedPurposeText || "?", detail: selectedDetailText || "?" }}
       nextScreen="beg-step2"
     >
       {/* Purpose big cards */}
       <div className="grid grid-cols-2 gap-4 mb-8">
-        {PURPOSE_OPTIONS.map(p => (
+        {PURPOSE_OPTIONS.map(p => {
+          const isPrimary = primaryPurpose === p.key;
+          const isAdditional = additionalPurposes.includes(p.key);
+          const isSelected = isPrimary || isAdditional;
+          return (
           <div key={p.key}
-            onClick={() => selectPurpose(p.key)}
-            className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
+            className="rounded-2xl overflow-hidden transition-all duration-200"
             style={{
-              border: `2px solid ${purpose === p.key ? p.color : C.line}`,
-              boxShadow: purpose === p.key ? `0 8px 24px ${p.color}28` : "0 2px 8px rgba(0,0,0,0.05)",
-              transform: purpose === p.key ? "translateY(-2px)" : "none",
+              border: `2px solid ${isSelected ? p.color : C.line}`,
+              boxShadow: isSelected ? `0 8px 24px ${p.color}28` : "0 2px 8px rgba(0,0,0,0.05)",
+              transform: isSelected ? "translateY(-2px)" : "none",
             }}
           >
             <div className="relative h-32 overflow-hidden">
               <img src={p.img} alt={p.key} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              <div style={{ position: "absolute", inset: 0, background: purpose === p.key ? `${p.color}33` : "rgba(0,0,0,0.25)" }} />
+              <div style={{ position: "absolute", inset: 0, background: isSelected ? `${p.color}33` : "rgba(0,0,0,0.25)" }} />
               <div style={{ position: "absolute", top: 12, left: 12, fontSize: 28 }}>{p.icon}</div>
-              {purpose === p.key && (
+              {isSelected && (
                 <div style={{ position: "absolute", top: 10, right: 10, background: p.color, color: "#fff", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>
-                  ✓ 선택됨
+                  {isPrimary ? "주 용도" : "추가"}
                 </div>
               )}
             </div>
-            <div className="px-4 py-3" style={{ background: purpose === p.key ? p.bg : C.surface }}>
-              <p className="font-bold text-sm" style={{ color: purpose === p.key ? p.color : C.textStrong }}>{p.key}</p>
+            <div className="px-4 py-3" style={{ background: isSelected ? p.bg : C.surface }}>
+              <p className="font-bold text-sm" style={{ color: isSelected ? p.color : C.textStrong }}>{p.key}</p>
               <p className="text-xs mt-0.5" style={{ color: C.textSub }}>{p.desc}</p>
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => selectPrimaryPurpose(p.key)}
+                  className="h-8 rounded-lg text-xs font-bold transition-all"
+                  style={{ background: isPrimary ? p.color : C.bg, color: isPrimary ? "#fff" : C.textBody, border: `1px solid ${isPrimary ? p.color : C.line}` }}
+                >
+                  주로 해요
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleAdditionalPurpose(p.key)}
+                  disabled={isPrimary}
+                  className="h-8 rounded-lg text-xs font-bold transition-all disabled:opacity-45"
+                  style={{ background: isAdditional ? p.color : C.bg, color: isAdditional ? "#fff" : C.textBody, border: `1px solid ${isAdditional ? p.color : C.line}` }}
+                >
+                  가끔 해요
+                </button>
+              </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Purpose sub-selection */}
-      {purpose && selectedPurpose && (
-        <div className="rounded-2xl p-6" style={{ background: selectedPurpose.bg, border: `1.5px solid ${selectedPurpose.color}55` }}>
-          <p className="text-sm font-bold mb-1" style={{ color: selectedPurpose.color }}>
-            {selectedPurpose.icon} {purpose === "게임용" ? "주로 즐기는 게임을 골라주세요" : "세부 사용 목적을 골라주세요"} (다중 선택)
-          </p>
-          <p className="text-xs mb-4" style={{ color: selectedPurpose.color }}>
-            {purpose === "게임용"
-              ? "AI가 게임별 권장 사양과 직접 입력한 게임명을 함께 참고합니다."
-              : "AI가 선택한 사용 패턴에 맞춰 CPU, 메모리, 저장공간, 소음 기준을 조정합니다."}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {detailOptions.map(o => {
-              const isSelected = purpose === "게임용" ? games.includes(o.key) : details.includes(o.key);
-              return (
-              <div key={o.key} onClick={() => purpose === "게임용" ? toggleGame(o.key) : toggleDetail(o.key)}
-                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                style={{
-                  background: isSelected ? `${selectedPurpose.color}22` : C.surface,
-                  border: `1.5px solid ${isSelected ? selectedPurpose.color : C.line}`,
-                }}>
-                <span className="text-xl">{o.icon}</span>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: isSelected ? selectedPurpose.color : C.textBody }}>{o.key}</p>
-                  <p className="text-xs" style={{ color: C.textSub }}>{o.desc}</p>
+      {selectedPurposes.length > 0 && (
+        <div className="space-y-4">
+          {selectedPurposes.map(purpose => {
+            const selectedPurpose = PURPOSE_OPTIONS.find(p => p.key === purpose);
+            if (!selectedPurpose) return null;
+            const detailOptions = isGamePurpose(purpose) ? GAME_OPTIONS : PURPOSE_DETAIL_OPTIONS[purpose] ?? [];
+            return (
+              <div key={purpose} className="rounded-2xl p-6" style={{ background: selectedPurpose.bg, border: `1.5px solid ${selectedPurpose.color}55` }}>
+                <p className="text-sm font-bold mb-1" style={{ color: selectedPurpose.color }}>
+                  {selectedPurpose.icon} {isGamePurpose(purpose) ? "주로 즐기는 게임을 골라주세요" : "세부 사용 목적을 골라주세요"} (다중 선택)
+                </p>
+                <p className="text-xs mb-4" style={{ color: selectedPurpose.color }}>
+                  {isGamePurpose(purpose)
+                    ? "AI가 게임별 권장 사양과 직접 입력한 게임명을 함께 참고합니다."
+                    : "AI가 선택한 사용 패턴에 맞춰 CPU, 메모리, 저장공간, 소음 기준을 조정합니다."}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {detailOptions.map(o => {
+                    const isSelected = (purposeDetails[purpose] ?? []).includes(o.key);
+                    return (
+                    <div key={o.key} onClick={() => togglePurposeDetail(purpose, o.key)}
+                      className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                      style={{
+                        background: isSelected ? `${selectedPurpose.color}22` : C.surface,
+                        border: `1.5px solid ${isSelected ? selectedPurpose.color : C.line}`,
+                      }}>
+                      <span className="text-xl">{o.icon}</span>
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: isSelected ? selectedPurpose.color : C.textBody }}>{o.key}</p>
+                        <p className="text-xs" style={{ color: C.textSub }}>{o.desc}</p>
+                      </div>
+                      {isSelected && <span className="ml-auto text-xs font-bold" style={{ color: selectedPurpose.color }}>✓</span>}
+                    </div>
+                    );
+                  })}
                 </div>
-                {isSelected && <span className="ml-auto text-xs font-bold" style={{ color: selectedPurpose.color }}>✓</span>}
               </div>
-              );
-            })}
-          </div>
+            );
+          })}
 
-          {purpose === "게임용" && (
-            <div className="mt-4 rounded-xl p-4" style={{ background: C.surface, border: `1.5px dashed ${selectedPurpose.color}88` }}>
+          {hasGamePurpose && (
+            <div className="rounded-xl p-4" style={{ background: C.surface, border: `1.5px dashed ${C.primary}88` }}>
               <label className="text-sm font-semibold block mb-2" style={{ color: C.textBody }}>목록에 없는 게임 직접 입력</label>
               <input
                 value={customGame}
@@ -345,9 +468,9 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
           )}
 
           {selectedDetailText && (
-            <div className="mt-4 p-3 rounded-xl flex items-center gap-2" style={{ background: C.surface, border: `1px solid ${selectedPurpose.color}33` }}>
+            <div className="p-3 rounded-xl flex items-center gap-2" style={{ background: C.surface, border: `1px solid ${C.line}` }}>
               <span className="text-sm">✓</span>
-              <p className="text-sm" style={{ color: selectedPurpose.color }}>
+              <p className="text-sm" style={{ color: C.textBody }}>
                 <span className="font-bold">선택된 세부 조건:</span> {selectedDetailText}
               </p>
             </div>
@@ -379,6 +502,7 @@ function BegStep2({ navigate }: { navigate: (s: Screen) => void }) {
   };
   const desc = getBudgetDesc(budget);
   const pct = ((budget - 30) / (300 - 30)) * 100;
+  const purposeText = getPurposeText(draft);
   const purposeDetail = getPurposeDetailText(draft);
 
   useEffect(() => {
@@ -391,7 +515,7 @@ function BegStep2({ navigate }: { navigate: (s: Screen) => void }) {
       title="예산은 어느 정도 생각하세요?"
       subtitle="슬라이더를 움직이거나 아래 프리셋을 클릭하세요."
       promptText="주 용도는 [purpose], 세부 사용은 [detail]입니다. 예산은 약 [budget] 정도로, [grade] 구성을 원합니다."
-      promptKeys={{ purpose: draft.purpose || "?", detail: purposeDetail || "?", budget: `${budget}만원`, grade: desc.label }}
+      promptKeys={{ purpose: purposeText || "?", detail: purposeDetail || "?", budget: `${budget}만원`, grade: desc.label }}
       onPrev={() => navigate("beg-step1")}
       nextScreen="beg-step3"
     >
@@ -463,6 +587,7 @@ function BegStep3({ navigate }: { navigate: (s: Screen) => void }) {
   const { draft, updateDraft } = useBeginnerDraft();
   const [styles, setStyles] = useState<string[]>(draft.styles);
   const toggle = (s: string) => setStyles(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+  const purposeText = getPurposeText(draft);
   const purposeDetail = getPurposeDetailText(draft);
 
   useEffect(() => {
@@ -476,7 +601,7 @@ function BegStep3({ navigate }: { navigate: (s: Screen) => void }) {
       subtitle="여러 개 선택 가능합니다. AI가 해당 스타일에 맞는 부품과 케이스를 우선 추천합니다."
       promptText="주 용도는 [purpose], 세부 사용은 [detail]이고 예산은 [budget]입니다. 외관·스타일은 [style] 조건에 맞게 구성해 주세요."
       promptKeys={{
-        purpose: draft.purpose || "?",
+        purpose: purposeText || "?",
         detail: purposeDetail || "?",
         budget: draft.budget ? `${draft.budget}만원` : "?",
         style: styles.length ? styles.join(", ") : "?",
@@ -550,6 +675,7 @@ function BegStep4({ navigate }: { navigate: (s: Screen) => void }) {
   const [use, setUse] = useState(draft.monitorUse || "부드러운 게임");
   const [monitorExcluded, setMonitorExcluded] = useState(draft.monitorExcluded);
   const selectedResolution = MONITOR_RESOLUTION_OPTIONS.find(o => o.key === resolution) ?? MONITOR_RESOLUTION_OPTIONS[1];
+  const purposeText = getPurposeText(draft);
   const purposeDetail = getPurposeDetailText(draft);
 
   useEffect(() => {
@@ -572,7 +698,7 @@ function BegStep4({ navigate }: { navigate: (s: Screen) => void }) {
       subtitle="해상도와 화면 형태만 골라도 AI가 그래픽카드 성능과 모니터 조합을 함께 맞춥니다."
       promptText="주 용도는 [purpose], 세부 사용은 [detail], 예산은 [budget], 스타일은 [style]입니다. 모니터는 [resolution] 해상도, [shape] 화면, [use] 용도에 맞춰 추천해 주세요."
       promptKeys={{
-        purpose: draft.purpose || "?",
+        purpose: purposeText || "?",
         detail: purposeDetail || "?",
         budget: draft.budget ? `${draft.budget}만원` : "?",
         style: draft.styles.length ? draft.styles.join(", ") : "?",
@@ -692,11 +818,12 @@ function BegStep4({ navigate }: { navigate: (s: Screen) => void }) {
 // ── Beg Step 5 (Summary) ───────────────────────────────────────────────────
 function BegStep5({ navigate }: { navigate: (s: Screen) => void }) {
   const { draft } = useBeginnerDraft();
+  const purposeText = getPurposeText(draft);
   const purposeDetail = getPurposeDetailText(draft);
   const monitorText = draft.monitorExcluded
     ? "모니터는 견적에서 제외하고 본체만 최적의 견적으로 조립해 주세요."
     : `모니터는 [${draft.monitorResolution || "QHD"} 해상도 / ${draft.monitorShape || "평면"} / ${draft.monitorUse || "부드러운 게임"}] 기준으로 최적의 견적을 조립해 주세요.`;
-  const defaultText = `안녕하세요! 저는 PC를 잘 모르는 초급자입니다.\n주 용도는 [${draft.purpose || "미선택"}]이며, 세부 사용은 [${purposeDetail || "미선택"}]입니다.\n예산은 [${draft.budget ? `${draft.budget}만 원` : "미선택"}] 정도이고, 외관은 [${draft.styles.length ? draft.styles.join(", ") : "미선택"}] 스타일입니다.\n${monitorText}\n호환성과 팝콘PC 재고를 반드시 확인해 주세요.`;
+  const defaultText = `안녕하세요! 저는 PC를 잘 모르는 초급자입니다.\n주 용도는 [${purposeText || "미선택"}]이며, 세부 사용은 [${purposeDetail || "미선택"}]입니다.\n예산은 [${draft.budget ? `${draft.budget}만 원` : "미선택"}] 정도이고, 외관은 [${draft.styles.length ? draft.styles.join(", ") : "미선택"}] 스타일입니다.\n${monitorText}\n호환성과 팝콘PC 재고를 반드시 확인해 주세요.`;
   const [text, setText] = useState(defaultText);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
