@@ -12,16 +12,45 @@ const POPULAR_QUOTES = [
   { rank: 5, purpose: "온라인 수업·화상회의", detail: "인터넷 강의", name: "RTX 4060 + R5 7500F 가성비", averagePrice: "890,000원", views: 128, carts: 24 },
 ];
 
+const POPULAR_PRODUCTS = [
+  { rank: 1, category: "GPU", name: "NVIDIA RTX 4070 SUPER 12GB", price: "789,000원", rise: 4, updatedAt: "2분 전" },
+  { rank: 2, category: "CPU", name: "AMD 라이젠 5 7500F", price: "198,000원", rise: 2, updatedAt: "4분 전" },
+  { rank: 3, category: "RAM", name: "삼성 DDR5 32GB 듀얼킷", price: "118,000원", rise: 6, updatedAt: "7분 전" },
+  { rank: 4, category: "SSD", name: "SK하이닉스 Platinum P41 1TB", price: "109,000원", rise: 1, updatedAt: "9분 전" },
+  { rank: 5, category: "POWER", name: "시소닉 FOCUS 850W Gold", price: "139,000원", rise: 3, updatedAt: "12분 전" },
+];
+
 function RealtimePanel() {
+  const [activeTab, setActiveTab] = useState<"quotes" | "products">("quotes");
+
   return (
     <section style={{ background: C.surface, borderBottom: `1px solid ${C.line}` }}>
       <div className="max-w-6xl mx-auto px-8 py-0">
         <div className="flex gap-0" style={{ borderBottom: `1px solid ${C.line}` }}>
-          <div className="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 -mb-px"
-            style={{ borderColor: C.primary, color: C.primary, background: "#f8fbff" }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("quotes")}
+            className="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 -mb-px"
+            style={{
+              borderColor: activeTab === "quotes" ? C.primary : "transparent",
+              color: activeTab === "quotes" ? C.primary : C.textSub,
+              background: activeTab === "quotes" ? "#f8fbff" : C.surface,
+            }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
             실시간 인기 견적
-          </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("products")}
+            className="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 -mb-px"
+            style={{
+              borderColor: activeTab === "products" ? C.primary : "transparent",
+              color: activeTab === "products" ? C.primary : C.textSub,
+              background: activeTab === "products" ? "#f8fbff" : C.surface,
+            }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", display: "inline-block" }} />
+            실시간 인기 상품
+          </button>
           <div className="flex-1" />
           <div className="flex items-center gap-1.5 pr-2 text-xs" style={{ color: C.textSub }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
@@ -30,29 +59,54 @@ function RealtimePanel() {
         </div>
 
         <div className="py-4" style={{ minHeight: 200 }}>
-          <div className="space-y-2">
-            {POPULAR_QUOTES.map((q, i) => (
-              <div key={q.rank}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer"
-                style={{ background: i === 0 ? C.primaryLight : "transparent" }}
-                onMouseEnter={e => (e.currentTarget.style.background = C.primaryLight)}
-                onMouseLeave={e => (e.currentTarget.style.background = i === 0 ? C.primaryLight : "transparent")}
-              >
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
-                  style={{ background: i === 0 ? C.primary : i <= 2 ? C.primaryLight : C.bg, color: i === 0 ? "#fff" : i <= 2 ? C.primary : C.textSub }}>
-                  {q.rank}
+          {activeTab === "quotes" ? (
+            <div className="space-y-2">
+              {POPULAR_QUOTES.map((q, i) => (
+                <div key={q.rank}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer"
+                  style={{ background: i === 0 ? C.primaryLight : "transparent" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = C.primaryLight)}
+                  onMouseLeave={e => (e.currentTarget.style.background = i === 0 ? C.primaryLight : "transparent")}
+                >
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
+                    style={{ background: i === 0 ? C.primary : i <= 2 ? C.primaryLight : C.bg, color: i === 0 ? "#fff" : i <= 2 ? C.primary : C.textSub }}>
+                    {q.rank}
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                    style={{ background: C.bg, color: C.textBody }}>주용도 {q.purpose}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                    style={{ background: "#f8fbff", color: C.primary, border: `1px solid ${C.primaryLight}` }}>세부용도 {q.detail}</span>
+                  <span className="text-sm flex-1 truncate font-medium" style={{ color: C.textBody }}>{q.name}</span>
+                  <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>견적조회 {q.views}건</span>
+                  <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>장바구니 {q.carts}건</span>
+                  <span className="text-sm font-bold flex-shrink-0" style={{ color: C.primary }}>평균금액 {q.averagePrice}</span>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                  style={{ background: C.bg, color: C.textBody }}>주용도 {q.purpose}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                  style={{ background: "#f8fbff", color: C.primary, border: `1px solid ${C.primaryLight}` }}>세부용도 {q.detail}</span>
-                <span className="text-sm flex-1 truncate font-medium" style={{ color: C.textBody }}>{q.name}</span>
-                <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>견적조회 {q.views}건</span>
-                <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>장바구니 {q.carts}건</span>
-                <span className="text-sm font-bold flex-shrink-0" style={{ color: C.primary }}>평균금액 {q.averagePrice}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {POPULAR_PRODUCTS.map((p, i) => (
+                <div key={p.rank}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer"
+                  style={{ background: i === 0 ? C.primaryLight : "transparent" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = C.primaryLight)}
+                  onMouseLeave={e => (e.currentTarget.style.background = i === 0 ? C.primaryLight : "transparent")}
+                >
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
+                    style={{ background: i === 0 ? C.primary : i <= 2 ? C.primaryLight : C.bg, color: i === 0 ? "#fff" : i <= 2 ? C.primary : C.textSub }}>
+                    {p.rank}
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-bold flex-shrink-0"
+                    style={{ background: C.bg, color: C.textBody }}>카테고리 {p.category}</span>
+                  <span className="text-sm flex-1 truncate font-medium" style={{ color: C.textBody }}>{p.name}</span>
+                  <span className="text-sm font-bold flex-shrink-0" style={{ color: C.primary }}>{p.price}</span>
+                  <span className="text-xs font-semibold flex-shrink-0 px-1.5 py-0.5 rounded"
+                    style={{ color: C.success, background: "#e8f5e9" }}>순위 +{p.rise}</span>
+                  <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>업데이트 {p.updatedAt}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
