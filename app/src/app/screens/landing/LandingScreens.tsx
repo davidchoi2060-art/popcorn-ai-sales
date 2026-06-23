@@ -5,41 +5,22 @@ import { GNB, Footer } from "../../components/common/Navigation";
 import { UserLayout } from "../../layouts/AppLayouts";
 
 const POPULAR_QUOTES = [
-  { rank: 1, tag: "🎮 게임용", name: "RTX 4070 + R5 7600X 조합", price: "1,250,000원", delta: "+2.1%", up: true, count: 284 },
-  { rank: 2, tag: "💼 사무용", name: "내장그래픽 R5 8600G 미니PC", price: "620,000원", delta: "-0.8%", up: false, count: 197 },
-  { rank: 3, tag: "🎬 편집용", name: "RTX 4080 + R9 7950X 워크스테이션", price: "3,180,000원", delta: "+4.3%", up: true, count: 156 },
-  { rank: 4, tag: "📡 방송용", name: "RTX 4070 Ti + i9-14900K 원컴방송", price: "2,450,000원", delta: "+1.2%", up: true, count: 143 },
-  { rank: 5, tag: "🎓 학습용", name: "RTX 4060 + R5 7500F 가성비", price: "890,000원", delta: "-1.5%", up: false, count: 128 },
-];
-
-const PRICE_TRENDS = [
-  { part: "RTX 4070", category: "GPU", price: "550,000원", change: "+12,000", pct: "+2.2%", up: true },
-  { part: "R5 7600X", category: "CPU", price: "248,000원", change: "-8,000", pct: "-3.1%", up: false },
-  { part: "DDR5 32GB", category: "RAM", price: "118,000원", change: "+3,000", pct: "+2.6%", up: true },
-  { part: "NVMe 1TB", category: "SSD", price: "96,000원", change: "-2,000", pct: "-2.0%", up: false },
-  { part: "850W Gold", category: "파워", price: "119,000원", change: "+1,000", pct: "+0.8%", up: true },
-  { part: "B650 WiFi", category: "메인보드", price: "178,000원", change: "-5,000", pct: "-2.7%", up: false },
+  { rank: 1, purpose: "인기 게임", detail: "배틀그라운드 QHD", name: "RTX 4070 + R5 7600X 조합", averagePrice: "1,250,000원", views: 284, carts: 63 },
+  { rank: 2, purpose: "문서·인터넷", detail: "문서·엑셀 위주", name: "내장그래픽 R5 8600G 미니PC", averagePrice: "620,000원", views: 197, carts: 42 },
+  { rank: 3, purpose: "유튜브 영상 편집", detail: "4K 영상 편집", name: "RTX 4080 + R9 7950X 워크스테이션", averagePrice: "3,180,000원", views: 156, carts: 31 },
+  { rank: 4, purpose: "방송·녹화·스트리밍", detail: "원컴 방송", name: "RTX 4070 Ti + i9-14900K 원컴방송", averagePrice: "2,450,000원", views: 143, carts: 27 },
+  { rank: 5, purpose: "온라인 수업·화상회의", detail: "인터넷 강의", name: "RTX 4060 + R5 7500F 가성비", averagePrice: "890,000원", views: 128, carts: 24 },
 ];
 
 function RealtimePanel() {
-  const [tick, setTick] = useState(0);
-  // 1초마다 숫자를 살짝 흔들어 "실시간" 느낌 연출
-  useState(() => { const id = setInterval(() => setTick(t => t + 1), 3000); return () => clearInterval(id); });
-
   return (
     <section style={{ background: C.surface, borderBottom: `1px solid ${C.line}` }}>
       <div className="max-w-6xl mx-auto px-8 py-0">
         <div className="flex gap-0" style={{ borderBottom: `1px solid ${C.line}` }}>
-          {/* 인기 견적 탭 헤더 */}
           <div className="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 -mb-px"
             style={{ borderColor: C.primary, color: C.primary, background: "#f8fbff" }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
             실시간 인기 견적
-          </div>
-          <div className="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 -mb-px"
-            style={{ borderColor: "#f59e0b", color: "#b45309", background: "#fffbeb" }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", display: "inline-block" }} />
-            실시간 가격 동향
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-1.5 pr-2 text-xs" style={{ color: C.textSub }}>
@@ -48,66 +29,29 @@ function RealtimePanel() {
           </div>
         </div>
 
-        {/* Two-column grid */}
-        <div className="flex gap-0" style={{ minHeight: 200 }}>
-          {/* ① 인기 견적 TOP 5 */}
-          <div className="flex-1 py-4 pr-6" style={{ borderRight: `1px solid ${C.line}` }}>
-            <div className="space-y-2">
-              {POPULAR_QUOTES.map((q, i) => (
-                <div key={q.rank}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer"
-                  style={{ background: i === 0 ? C.primaryLight : "transparent" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = C.primaryLight)}
-                  onMouseLeave={e => (e.currentTarget.style.background = i === 0 ? C.primaryLight : "transparent")}
-                >
-                  {/* Rank badge */}
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
-                    style={{ background: i === 0 ? C.primary : i <= 2 ? C.primaryLight : C.bg, color: i === 0 ? "#fff" : i <= 2 ? C.primary : C.textSub }}>
-                    {q.rank}
-                  </div>
-                  {/* Tag */}
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                    style={{ background: C.bg, color: C.textBody }}>{q.tag}</span>
-                  {/* Name */}
-                  <span className="text-sm flex-1 truncate font-medium" style={{ color: C.textBody }}>{q.name}</span>
-                  {/* Count */}
-                  <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>{q.count}건</span>
-                  {/* Price */}
-                  <span className="text-sm font-bold flex-shrink-0" style={{ color: C.primary }}>{q.price}</span>
-                  {/* Delta */}
-                  <span className="text-xs font-semibold flex-shrink-0 px-1.5 py-0.5 rounded"
-                    style={{ color: q.up ? C.success : C.error, background: q.up ? "#e8f5e9" : "#fdecea" }}>
-                    {q.up ? "▲" : "▼"} {q.delta}
-                  </span>
+        <div className="py-4" style={{ minHeight: 200 }}>
+          <div className="space-y-2">
+            {POPULAR_QUOTES.map((q, i) => (
+              <div key={q.rank}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer"
+                style={{ background: i === 0 ? C.primaryLight : "transparent" }}
+                onMouseEnter={e => (e.currentTarget.style.background = C.primaryLight)}
+                onMouseLeave={e => (e.currentTarget.style.background = i === 0 ? C.primaryLight : "transparent")}
+              >
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
+                  style={{ background: i === 0 ? C.primary : i <= 2 ? C.primaryLight : C.bg, color: i === 0 ? "#fff" : i <= 2 ? C.primary : C.textSub }}>
+                  {q.rank}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ② 가격 동향 */}
-          <div className="w-80 shrink-0 py-4 pl-6">
-            <div className="space-y-2">
-              {PRICE_TRENDS.map(p => (
-                <div key={p.part} className="flex items-center gap-3">
-                  {/* Category badge */}
-                  <span className="text-xs font-bold w-14 text-center py-0.5 rounded flex-shrink-0"
-                    style={{ background: C.bg, color: C.textSub }}>{p.category}</span>
-                  {/* Part name */}
-                  <span className="text-sm flex-1 font-medium" style={{ color: C.textBody }}>{p.part}</span>
-                  {/* Price */}
-                  <span className="text-sm font-bold" style={{ color: C.textStrong }}>{p.price}</span>
-                  {/* Change */}
-                  <div className="flex items-center gap-1 flex-shrink-0 w-20 justify-end">
-                    <span className="text-xs font-semibold" style={{ color: p.up ? C.success : C.error }}>
-                      {p.up ? "▲" : "▼"} {p.pct}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs mt-3 pt-3" style={{ color: C.textSub, borderTop: `1px solid ${C.line}` }}>
-              팝콘PC 실재고 기준 · 최근 24시간 변동 · {tick >= 0 && "실시간 반영"}
-            </p>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                  style={{ background: C.bg, color: C.textBody }}>주용도 {q.purpose}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                  style={{ background: "#f8fbff", color: C.primary, border: `1px solid ${C.primaryLight}` }}>세부용도 {q.detail}</span>
+                <span className="text-sm flex-1 truncate font-medium" style={{ color: C.textBody }}>{q.name}</span>
+                <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>견적조회 {q.views}건</span>
+                <span className="text-xs flex-shrink-0" style={{ color: C.textSub }}>장바구니 {q.carts}건</span>
+                <span className="text-sm font-bold flex-shrink-0" style={{ color: C.primary }}>평균금액 {q.averagePrice}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
