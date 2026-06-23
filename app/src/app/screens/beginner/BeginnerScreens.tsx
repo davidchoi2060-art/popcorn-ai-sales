@@ -26,6 +26,13 @@ type BeginnerDraft = {
   monitorExcluded: boolean;
 };
 
+type DetailOption = {
+  key: string;
+  icon: string;
+  desc: string;
+  spec?: string;
+};
+
 const BEGINNER_DRAFT_KEY = "popcorn-beginner-draft";
 const DEFAULT_BEGINNER_DRAFT: BeginnerDraft = {
   purpose: "",
@@ -43,6 +50,8 @@ const DEFAULT_BEGINNER_DRAFT: BeginnerDraft = {
   monitorUse: "",
   monitorExcluded: false,
 };
+
+let hasInitializedBegStep1 = false;
 
 function normalizePurposeKey(purpose: string) {
   const legacyMap: Record<string, string> = {
@@ -117,12 +126,24 @@ function isGamePurpose(purpose: string) {
 function formatPurposeDetails(purposes: string[], purposeDetails: Record<string, string[]>, customGame: string) {
   return purposes
     .map(purpose => {
-      const details = [...(purposeDetails[purpose] ?? [])];
-      if (isGamePurpose(purpose) && customGame.trim()) details.push(customGame.trim());
+      const details = (purposeDetails[purpose] ?? []).map(detail => formatDetailWithSpec(purpose, detail));
+      if (isGamePurpose(purpose) && customGame.trim()) {
+        details.push(`${customGame.trim()} (직접 입력 게임명, 게임별 권장 CPU/GPU 확인)`);
+      }
       return details.length ? `${purpose}: ${details.join(", ")}` : "";
     })
     .filter(Boolean)
     .join(" / ");
+}
+
+function formatDetailWithSpec(purpose: string, detail: string) {
+  const option = getDetailOption(purpose, detail);
+  return option?.spec ? `${detail} (${option.spec})` : detail;
+}
+
+function getDetailOption(purpose: string, detail: string) {
+  const options = isGamePurpose(purpose) ? GAME_DETAIL_OPTIONS[purpose] : PURPOSE_DETAIL_OPTIONS[purpose];
+  return options?.find(option => option.key === detail);
 }
 
 const BEG_STEPS = [
@@ -265,58 +286,72 @@ const PURPOSE_OPTIONS = [
   { key: "방송·녹화·스트리밍", icon: "📡", desc: "게임 방송, 녹화, 송출", color: "#455a64", bg: "#eceff1", img: "https://images.unsplash.com/photo-1614179924047-e1ab49a0a0cf?w=300&h=160&fit=crop&auto=format" },
 ];
 
-const GAME_OPTIONS = [
-  { key: "배틀그라운드", icon: "🔫", desc: "PUBG · 고사양 권장" },
-  { key: "디아블로4", icon: "⚔️", desc: "액션 RPG · 중사양" },
-  { key: "리그오브레전드", icon: "🏆", desc: "MOBA · 저사양" },
-  { key: "사이버펑크 2077", icon: "🌆", desc: "오픈월드 · 초고사양" },
-];
+const GAME_DETAIL_OPTIONS: Record<string, DetailOption[]> = {
+  "가벼운 게임": [
+    { key: "리그오브레전드", icon: "🏆", desc: "MOBA · 낮은 사양에서도 쾌적", spec: "FHD, 보급형 CPU, 내장 그래픽 또는 보급형 GPU 가능" },
+    { key: "메이플스토리", icon: "🍁", desc: "온라인 RPG · 가성비 구성 가능", spec: "FHD, CPU 싱글 성능 우선, 보급형 GPU" },
+    { key: "FC 온라인", icon: "⚽", desc: "스포츠 게임 · FHD 기준 충분", spec: "FHD, 보급형 CPU/GPU, 안정적인 네트워크" },
+    { key: "마인크래프트", icon: "⛏️", desc: "샌드박스 · 모드 사용 여부 참고", spec: "FHD, RAM 16GB 권장, 모드 사용 시 CPU/GPU 여유" },
+  ],
+  "인기 게임": [
+    { key: "배틀그라운드", icon: "🔫", desc: "FPS · 그래픽카드 성능 중요", spec: "FHD/QHD, 중급 이상 GPU, CPU/GPU 균형" },
+    { key: "로스트아크", icon: "⚔️", desc: "MMORPG · CPU와 GPU 균형", spec: "FHD/QHD, CPU 멀티 성능, RAM 16GB 이상" },
+    { key: "오버워치 2", icon: "🎯", desc: "FPS · 높은 주사율 선호", spec: "FHD/QHD, 144Hz 이상, 중급 GPU" },
+    { key: "발로란트", icon: "💥", desc: "FPS · 반응속도와 고주사율", spec: "FHD, 144Hz 이상, CPU 반응속도 우선" },
+  ],
+  "고사양 3D 게임": [
+    { key: "사이버펑크 2077", icon: "🌆", desc: "오픈월드 · QHD 이상 고사양", spec: "QHD/4K, 고성능 GPU, 레이트레이싱 고려" },
+    { key: "앨런 웨이크 2", icon: "🔦", desc: "AAA 게임 · 그래픽 옵션 부담 큼", spec: "QHD, 고성능 GPU, VRAM 여유" },
+    { key: "스타필드", icon: "🚀", desc: "오픈월드 RPG · CPU/GPU 모두 중요", spec: "QHD, 고성능 CPU/GPU, SSD 필수" },
+    { key: "MS 플라이트 시뮬레이터", icon: "✈️", desc: "시뮬레이션 · 메모리와 CPU 여유", spec: "QHD/4K, CPU 멀티 성능, RAM 32GB 권장" },
+  ],
+};
 
-const PURPOSE_DETAIL_OPTIONS: Record<string, { key: string; icon: string; desc: string }[]> = {
+const PURPOSE_DETAIL_OPTIONS: Record<string, DetailOption[]> = {
   "문서·인터넷": [
-    { key: "문서·엑셀 위주", icon: "📄", desc: "오피스, 세금계산서, 업무 문서" },
-    { key: "인터넷 창 여러 개", icon: "🌐", desc: "검색, 쇼핑, 메일 동시 사용" },
-    { key: "조용한 PC 선호", icon: "🔇", desc: "소음 적은 사무 환경" },
-    { key: "가성비 우선", icon: "💰", desc: "필요한 만큼만 합리적으로" },
+    { key: "문서·엑셀 위주", icon: "📄", desc: "오피스, 세금계산서, 업무 문서", spec: "보급형 CPU, RAM 16GB 권장, 내장 그래픽 가능" },
+    { key: "인터넷 창 여러 개", icon: "🌐", desc: "검색, 쇼핑, 메일 동시 사용", spec: "RAM 16GB 이상, SSD 우선" },
+    { key: "조용한 PC 선호", icon: "🔇", desc: "소음 적은 사무 환경", spec: "저소음 쿨러, 발열 낮은 CPU, 저소음 케이스" },
+    { key: "가성비 우선", icon: "💰", desc: "필요한 만큼만 합리적으로", spec: "필수 성능 중심, 내장 그래픽 우선 검토" },
   ],
   "온라인 수업·화상회의": [
-    { key: "화상회의 많음", icon: "🎥", desc: "줌, 팀즈, 웹캠 회의" },
-    { key: "인터넷 강의", icon: "🎓", desc: "강의 시청과 과제 작업" },
-    { key: "마이크·카메라 사용", icon: "🎙️", desc: "웹캠과 음성 장비 연결" },
-    { key: "조용한 PC 선호", icon: "🔇", desc: "수업과 회의 중 소음 최소화" },
+    { key: "화상회의 많음", icon: "🎥", desc: "줌, 팀즈, 웹캠 회의", spec: "RAM 16GB, 안정적인 USB/네트워크, 내장 그래픽 가능" },
+    { key: "인터넷 강의", icon: "🎓", desc: "강의 시청과 과제 작업", spec: "보급형 CPU, SSD, 조용한 쿨링" },
+    { key: "마이크·카메라 사용", icon: "🎙️", desc: "웹캠과 음성 장비 연결", spec: "USB 포트 여유, 안정적인 메인보드" },
+    { key: "조용한 PC 선호", icon: "🔇", desc: "수업과 회의 중 소음 최소화", spec: "저소음 쿨러, 저발열 CPU" },
   ],
   "주식·멀티창 작업": [
-    { key: "여러 창 동시 사용", icon: "🧩", desc: "브라우저 탭과 업무 프로그램 병행" },
-    { key: "듀얼 모니터", icon: "🖥️", desc: "모니터 2대 이상 연결" },
-    { key: "차트·HTS 사용", icon: "📈", desc: "주식 차트와 거래 프로그램" },
-    { key: "빠른 반응 우선", icon: "⚡", desc: "버벅임 없이 즉각적인 작업" },
+    { key: "여러 창 동시 사용", icon: "🧩", desc: "브라우저 탭과 업무 프로그램 병행", spec: "RAM 32GB 권장, CPU 멀티 성능" },
+    { key: "듀얼 모니터", icon: "🖥️", desc: "모니터 2대 이상 연결", spec: "듀얼 출력 지원, HDMI/DP 포트 확인" },
+    { key: "차트·HTS 사용", icon: "📈", desc: "주식 차트와 거래 프로그램", spec: "CPU 반응속도, RAM 16GB 이상, 안정성 우선" },
+    { key: "빠른 반응 우선", icon: "⚡", desc: "버벅임 없이 즉각적인 작업", spec: "빠른 CPU, NVMe SSD, RAM 여유" },
   ],
   "유튜브 영상 편집": [
-    { key: "유튜브 영상 편집", icon: "▶️", desc: "일반 영상 컷편집과 자막" },
-    { key: "4K 영상 편집", icon: "🎞️", desc: "고해상도 원본과 프리뷰" },
-    { key: "숏폼·간단 편집", icon: "📱", desc: "릴스, 쇼츠, 틱톡 영상" },
-    { key: "사진·디자인 병행", icon: "🎨", desc: "포토샵, 일러스트 작업" },
+    { key: "유튜브 영상 편집", icon: "▶️", desc: "일반 영상 컷편집과 자막", spec: "CPU 멀티 성능, RAM 32GB 권장, NVMe SSD" },
+    { key: "4K 영상 편집", icon: "🎞️", desc: "고해상도 원본과 프리뷰", spec: "고성능 CPU/GPU, RAM 32GB 이상, 빠른 SSD" },
+    { key: "숏폼·간단 편집", icon: "📱", desc: "릴스, 쇼츠, 틱톡 영상", spec: "중급 CPU, RAM 16GB 이상, SSD" },
+    { key: "사진·디자인 병행", icon: "🎨", desc: "포토샵, 일러스트 작업", spec: "RAM 32GB 권장, 색감 좋은 모니터 고려" },
   ],
   "방송·녹화·스트리밍": [
-    { key: "게임 방송", icon: "🎮", desc: "게임 플레이와 송출 동시 진행" },
-    { key: "얼굴캠·토크 방송", icon: "🎙️", desc: "캠, 마이크, 채팅 중심" },
-    { key: "녹화 후 편집까지", icon: "✂️", desc: "방송 저장본 편집 포함" },
-    { key: "원컴 방송", icon: "🖥️", desc: "PC 한 대로 게임과 송출 처리" },
+    { key: "게임 방송", icon: "🎮", desc: "게임 플레이와 송출 동시 진행", spec: "GPU 인코더, CPU 여유, RAM 32GB 권장" },
+    { key: "얼굴캠·토크 방송", icon: "🎙️", desc: "캠, 마이크, 채팅 중심", spec: "안정적인 USB/오디오, RAM 16GB 이상" },
+    { key: "녹화 후 편집까지", icon: "✂️", desc: "방송 저장본 편집 포함", spec: "CPU/GPU 인코딩, RAM 32GB, 대용량 SSD" },
+    { key: "원컴 방송", icon: "🖥️", desc: "PC 한 대로 게임과 송출 처리", spec: "고성능 CPU/GPU, GPU 인코더, RAM 32GB 이상" },
   ],
 };
 
 function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
   const { draft, updateDraft } = useBeginnerDraft();
-  const [primaryPurpose, setPrimaryPurpose] = useState(draft.primaryPurpose || draft.purpose);
-  const [additionalPurposes, setAdditionalPurposes] = useState<string[]>(draft.additionalPurposes);
-  const [purposeDetails, setPurposeDetails] = useState<Record<string, string[]>>(draft.purposeDetails);
-  const [customGame, setCustomGame] = useState(draft.customGame);
+  const shouldResetInitialPurpose = !hasInitializedBegStep1;
+  const [primaryPurpose, setPrimaryPurpose] = useState(shouldResetInitialPurpose ? "" : draft.primaryPurpose || draft.purpose);
+  const [additionalPurposes, setAdditionalPurposes] = useState<string[]>(shouldResetInitialPurpose ? [] : draft.additionalPurposes);
+  const [purposeDetails, setPurposeDetails] = useState<Record<string, string[]>>(shouldResetInitialPurpose ? {} : draft.purposeDetails);
+  const [customGame, setCustomGame] = useState(shouldResetInitialPurpose ? "" : draft.customGame);
   const selectedPurposes = uniquePurposes([primaryPurpose, ...additionalPurposes]);
   const selectedPurposeText = primaryPurpose
     ? additionalPurposes.length ? `${primaryPurpose} 중심, 추가로 ${additionalPurposes.join(", ")}` : primaryPurpose
     : "";
   const selectedDetailText = formatPurposeDetails(selectedPurposes, purposeDetails, customGame);
-  const firstGamePurpose = selectedPurposes.find(isGamePurpose);
 
   const selectPrimaryPurpose = (p: string) => {
     setPrimaryPurpose(p);
@@ -340,6 +375,7 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
   };
 
   useEffect(() => {
+    hasInitializedBegStep1 = true;
     const games = selectedPurposes
       .filter(isGamePurpose)
       .flatMap(p => purposeDetails[p] ?? []);
@@ -425,11 +461,11 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
           {selectedPurposes.map(purpose => {
             const selectedPurpose = PURPOSE_OPTIONS.find(p => p.key === purpose);
             if (!selectedPurpose) return null;
-            const detailOptions = isGamePurpose(purpose) ? GAME_OPTIONS : PURPOSE_DETAIL_OPTIONS[purpose] ?? [];
+            const detailOptions = isGamePurpose(purpose) ? GAME_DETAIL_OPTIONS[purpose] ?? [] : PURPOSE_DETAIL_OPTIONS[purpose] ?? [];
             return (
               <div key={purpose} className="rounded-2xl p-6" style={{ background: selectedPurpose.bg, border: `1.5px solid ${selectedPurpose.color}55` }}>
                 <p className="text-sm font-bold mb-1" style={{ color: selectedPurpose.color }}>
-                  {selectedPurpose.icon} {isGamePurpose(purpose) ? "주로 즐기는 게임을 골라주세요" : "세부 사용 목적을 골라주세요"} (다중 선택)
+                  {selectedPurpose.icon} [{purpose}] {isGamePurpose(purpose) ? "주로 즐기는 게임을 골라주세요" : "세부 사용 목적을 골라주세요"} (다중 선택)
                 </p>
                 <p className="text-xs mb-4" style={{ color: selectedPurpose.color }}>
                   {isGamePurpose(purpose)
@@ -457,7 +493,7 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
                   })}
                 </div>
 
-                {purpose === firstGamePurpose && (
+                {isGamePurpose(purpose) && (
                   <div className="mt-4 rounded-xl p-4" style={{ background: C.surface, border: `1.5px dashed ${selectedPurpose.color}88` }}>
                     <label className="text-sm font-semibold block mb-2" style={{ color: C.textBody }}>목록에 없는 게임 직접 입력</label>
                     <input
