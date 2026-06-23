@@ -253,3 +253,33 @@ product 수정
 4. 개발 속도
 
 성능 최적화는 명시적 요청 시에만 수행.
+
+---
+
+# 운영 메모
+
+## 우분투 서버 소스 위치
+
+GitHub 저장소:
+
+`https://github.com/davidchoi2060-art/popcorn-ai-sales.git`
+
+우분투 서버 작업 경로:
+
+`popcornpc@popcornpc-B860M-AORUS-ELITE:/srv/projects/popcorn-ai-sales`
+
+서버에서 처음 받을 때:
+
+```bash
+cd /srv/projects
+git clone https://github.com/davidchoi2060-art/popcorn-ai-sales.git
+cd popcorn-ai-sales
+```
+
+이미 받은 뒤 최신 소스를 받을 때:
+
+```bash
+cd /srv/projects/popcorn-ai-sales
+git status
+git pull origin main
+```

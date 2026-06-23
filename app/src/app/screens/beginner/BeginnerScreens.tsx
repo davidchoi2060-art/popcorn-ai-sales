@@ -54,6 +54,10 @@ function normalizePurposeKey(purpose: string) {
   return legacyMap[purpose] ?? purpose;
 }
 
+function uniquePurposes(purposes: string[]) {
+  return purposes.filter((purpose, index, arr) => purpose && arr.indexOf(purpose) === index);
+}
+
 function readBeginnerDraft(): BeginnerDraft {
   if (typeof window === "undefined") return DEFAULT_BEGINNER_DRAFT;
   try {
@@ -61,7 +65,7 @@ function readBeginnerDraft(): BeginnerDraft {
     if (!raw) return DEFAULT_BEGINNER_DRAFT;
     const saved = { ...DEFAULT_BEGINNER_DRAFT, ...JSON.parse(raw) };
     const primaryPurpose = normalizePurposeKey(saved.primaryPurpose || saved.purpose || "");
-    const additionalPurposes = saved.additionalPurposes.map(normalizePurposeKey);
+    const additionalPurposes = uniquePurposes(saved.additionalPurposes.map(normalizePurposeKey)).filter(p => p !== primaryPurpose);
     const purposeDetails = { ...saved.purposeDetails };
     if (primaryPurpose && !purposeDetails[primaryPurpose]?.length) {
       purposeDetails[primaryPurpose] = isGamePurpose(primaryPurpose) ? saved.games : saved.details;
@@ -96,7 +100,7 @@ function getPurposeDetailText(draft: BeginnerDraft) {
 }
 
 function getSelectedPurposes(draft: BeginnerDraft) {
-  return [draft.primaryPurpose || draft.purpose, ...draft.additionalPurposes].filter((p, i, arr) => p && arr.indexOf(p) === i);
+  return uniquePurposes([draft.primaryPurpose || draft.purpose, ...draft.additionalPurposes]);
 }
 
 function getPurposeText(draft: BeginnerDraft) {
@@ -307,21 +311,24 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
   const [additionalPurposes, setAdditionalPurposes] = useState<string[]>(draft.additionalPurposes);
   const [purposeDetails, setPurposeDetails] = useState<Record<string, string[]>>(draft.purposeDetails);
   const [customGame, setCustomGame] = useState(draft.customGame);
-  const selectedPurposes = [primaryPurpose, ...additionalPurposes].filter(Boolean);
+  const selectedPurposes = uniquePurposes([primaryPurpose, ...additionalPurposes]);
   const selectedPurposeText = primaryPurpose
     ? additionalPurposes.length ? `${primaryPurpose} 중심, 추가로 ${additionalPurposes.join(", ")}` : primaryPurpose
     : "";
   const selectedDetailText = formatPurposeDetails(selectedPurposes, purposeDetails, customGame);
-  const hasGamePurpose = selectedPurposes.some(isGamePurpose);
+  const firstGamePurpose = selectedPurposes.find(isGamePurpose);
 
   const selectPrimaryPurpose = (p: string) => {
     setPrimaryPurpose(p);
-    setAdditionalPurposes(prev => prev.filter(x => x !== p));
+    setAdditionalPurposes(prev => uniquePurposes(prev).filter(x => x !== p));
   };
 
   const toggleAdditionalPurpose = (p: string) => {
     if (p === primaryPurpose) return;
-    setAdditionalPurposes(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+    setAdditionalPurposes(prev => {
+      const next = prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p];
+      return uniquePurposes(next).filter(x => x !== primaryPurpose);
+    });
   };
 
   const togglePurposeDetail = (purpose: string, detail: string) => {
@@ -342,7 +349,7 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
     updateDraft({
       purpose: primaryPurpose,
       primaryPurpose,
-      additionalPurposes,
+      additionalPurposes: uniquePurposes(additionalPurposes).filter(p => p !== primaryPurpose),
       purposeDetails,
       games,
       customGame,
@@ -449,23 +456,23 @@ function BegStep1({ navigate }: { navigate: (s: Screen) => void }) {
                     );
                   })}
                 </div>
+
+                {purpose === firstGamePurpose && (
+                  <div className="mt-4 rounded-xl p-4" style={{ background: C.surface, border: `1.5px dashed ${selectedPurpose.color}88` }}>
+                    <label className="text-sm font-semibold block mb-2" style={{ color: C.textBody }}>목록에 없는 게임 직접 입력</label>
+                    <input
+                      value={customGame}
+                      onChange={e => setCustomGame(e.target.value)}
+                      placeholder="예: 발로란트, 로스트아크, 마인크래프트"
+                      className="w-full h-11 rounded-lg px-4 text-sm outline-none"
+                      style={{ border: `1.5px solid ${C.line}`, color: C.textBody, background: C.bg }}
+                    />
+                    <p className="text-xs mt-2" style={{ color: C.textSub }}>여러 게임은 쉼표로 구분해서 입력해도 됩니다.</p>
+                  </div>
+                )}
               </div>
             );
           })}
-
-          {hasGamePurpose && (
-            <div className="rounded-xl p-4" style={{ background: C.surface, border: `1.5px dashed ${C.primary}88` }}>
-              <label className="text-sm font-semibold block mb-2" style={{ color: C.textBody }}>목록에 없는 게임 직접 입력</label>
-              <input
-                value={customGame}
-                onChange={e => setCustomGame(e.target.value)}
-                placeholder="예: 발로란트, 로스트아크, 마인크래프트"
-                className="w-full h-11 rounded-lg px-4 text-sm outline-none"
-                style={{ border: `1.5px solid ${C.line}`, color: C.textBody, background: C.bg }}
-              />
-              <p className="text-xs mt-2" style={{ color: C.textSub }}>여러 게임은 쉼표로 구분해서 입력해도 됩니다.</p>
-            </div>
-          )}
 
           {selectedDetailText && (
             <div className="p-3 rounded-xl flex items-center gap-2" style={{ background: C.surface, border: `1px solid ${C.line}` }}>
