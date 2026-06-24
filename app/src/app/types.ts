@@ -9,4 +9,5 @@ export type Screen =
   | "adm-price-policy" | "adm-recommend-weights"
   | "adm-keywords" | "adm-click-report" | "adm-funnel"
   | "adm-system-limit" | "adm-operators"
+  | "adm-board"
   | "dev-hub";

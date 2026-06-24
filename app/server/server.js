@@ -16,6 +16,20 @@ import {
   handleAdminSourcingParse,
   handleAdminSourcingUpdate,
 } from "./routes/admin.sourcing.routes.js";
+import {
+  handleAdminOperatorAcceptInvite,
+  handleAdminOperatorActivity,
+  handleAdminOperatorInvite,
+  handleAdminOperatorLogin,
+  handleAdminOperators,
+  handleAdminOperatorStatus,
+  handleAdminOperatorUpdate,
+} from "./routes/admin.operators.routes.js";
+import {
+  handleAdminChangeRequestCreate,
+  handleAdminChangeRequests,
+  handleAdminChangeRequestStatus,
+} from "./routes/admin.change-requests.routes.js";
 import { handleGetMarginPolicies, handlePutMarginPolicies } from "./routes/admin.policy.js";
 import { handleRecommend } from "./routes/recommend.js";
 import { getDevHealth } from "./services/dev.service.js";
@@ -58,6 +72,52 @@ const server = http.createServer(async (request, response) => {
 
     if (request.method === "GET" && url.pathname === "/api/admin/products") {
       const result = await handleAdminProducts(url);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/admin/auth/login") {
+      const body = await readJson(request);
+      const result = await handleAdminOperatorLogin(request, body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/admin/operators/invite/accept") {
+      const body = await readJson(request);
+      const result = await handleAdminOperatorAcceptInvite(body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/operators") {
+      const result = await handleAdminOperators(request);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/operators/activity") {
+      const result = await handleAdminOperatorActivity(request);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/admin/operators/invite") {
+      const body = await readJson(request);
+      const result = await handleAdminOperatorInvite(request, body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/admin/change-requests") {
+      const result = await handleAdminChangeRequests(request);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/admin/change-requests") {
+      const body = await readJson(request);
+      const result = await handleAdminChangeRequestCreate(request, body);
       sendJson(response, result.status, result.body);
       return;
     }
@@ -109,6 +169,9 @@ const server = http.createServer(async (request, response) => {
 
     const productMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
     const productStatusMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/status$/);
+    const operatorMatch = url.pathname.match(/^\/api\/admin\/operators\/([^/]+)$/);
+    const operatorStatusMatch = url.pathname.match(/^\/api\/admin\/operators\/([^/]+)\/status$/);
+    const changeRequestStatusMatch = url.pathname.match(/^\/api\/admin\/change-requests\/([^/]+)\/status$/);
     const sourcingItemMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)$/);
     const sourcingCandidatesMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)\/candidates$/);
     const sourcingMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)\/match$/);
@@ -129,6 +192,27 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "PUT" && productStatusMatch) {
       const body = await readJson(request);
       const result = await handleAdminProductStatus(decodeURIComponent(productStatusMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && operatorMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminOperatorUpdate(request, decodeURIComponent(operatorMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && operatorStatusMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminOperatorStatus(request, decodeURIComponent(operatorStatusMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && changeRequestStatusMatch) {
+      const body = await readJson(request);
+      const result = await handleAdminChangeRequestStatus(request, decodeURIComponent(changeRequestStatusMatch[1]), body);
       sendJson(response, result.status, result.body);
       return;
     }

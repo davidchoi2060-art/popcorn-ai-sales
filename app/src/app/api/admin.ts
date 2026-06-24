@@ -145,6 +145,54 @@ export type DevHealthResponse = {
   };
 };
 
+export type AdminOperatorRole = "슈퍼관리자" | "관리자" | "MD" | "분석담당" | "읽기전용";
+export type AdminOperatorStatus = "활성" | "비활성" | "초대중";
+
+export type AdminOperator = {
+  id: number;
+  name: string;
+  email: string;
+  role: AdminOperatorRole;
+  status: AdminOperatorStatus;
+  memo: string;
+  lastLogin: string;
+  createdAt: string;
+  inviteExpiresAt?: string;
+};
+
+export type AdminOperatorActivity = {
+  id: number;
+  operatorId: number | null;
+  name: string;
+  action: string;
+  detail: string;
+  ip: string;
+  time: string;
+};
+
+export type AdminOperatorAuthResponse = {
+  operator: AdminOperator;
+  token: string;
+};
+
+export type AdminOperatorInviteResponse = {
+  operator: AdminOperator;
+  inviteUrl: string;
+  expiresAt: string;
+};
+
+export type AdminChangeRequestStatus = "등록" | "접수" | "처리중" | "완료" | "보류" | "폐기";
+
+export type AdminChangeRequest = {
+  id: number;
+  content: string;
+  status: AdminChangeRequestStatus;
+  registrantName: string;
+  registrantEmail: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminSourcingStatus = "매칭완료" | "후보복수" | "매칭필요" | "검토필요";
 
 export type AdminSourcingCandidate = {
@@ -292,4 +340,50 @@ export function updateAdminMarginPolicies(items: Array<{
 
 export function fetchDevHealth() {
   return apiGet<DevHealthResponse>("/api/dev/health", {}, { timeoutMs: 5000 });
+}
+
+export function loginAdminOperator(email: string, password: string) {
+  return apiPost<AdminOperatorAuthResponse, { email: string; password: string }>(
+    "/api/admin/auth/login",
+    { email, password },
+  );
+}
+
+export function acceptAdminOperatorInvite(body: { token: string; name: string; password: string }) {
+  return apiPost<AdminOperatorAuthResponse, typeof body>("/api/admin/operators/invite/accept", body);
+}
+
+export function fetchAdminOperators() {
+  return apiGet<{ items: AdminOperator[] }>("/api/admin/operators");
+}
+
+export function fetchAdminOperatorActivity() {
+  return apiGet<{ items: AdminOperatorActivity[] }>("/api/admin/operators/activity");
+}
+
+export function inviteAdminOperator(body: { email: string; role: AdminOperatorRole; memo: string }) {
+  return apiPost<AdminOperatorInviteResponse, typeof body>("/api/admin/operators/invite", body);
+}
+
+export function updateAdminOperator(id: number, body: { role: AdminOperatorRole; memo: string }) {
+  return apiPut<AdminOperator, typeof body>(`/api/admin/operators/${id}`, body);
+}
+
+export function updateAdminOperatorStatus(id: number, status: AdminOperatorStatus) {
+  return apiPut<AdminOperator, { status: AdminOperatorStatus }>(`/api/admin/operators/${id}/status`, { status });
+}
+
+export function fetchAdminChangeRequests() {
+  return apiGet<{ items: AdminChangeRequest[] }>("/api/admin/change-requests");
+}
+
+export function createAdminChangeRequest(content: string) {
+  return apiPost<AdminChangeRequest, { content: string }>("/api/admin/change-requests", { content });
+}
+
+export function updateAdminChangeRequestStatus(id: number, status: AdminChangeRequestStatus) {
+  return apiPut<AdminChangeRequest, { status: AdminChangeRequestStatus }>(
+    `/api/admin/change-requests/${id}/status`,
+    { status },
+  );
 }

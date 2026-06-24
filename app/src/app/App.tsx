@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type React from "react";
 import type { Screen } from "./types";
+import { getAdminToken } from "./api/client";
 import { Landing, AuthModal } from "./screens/landing/LandingScreens";
 import { BegStep1, BegStep2, BegStep3, BegStep4, BegStep5, BegResult, BegDetail } from "./screens/beginner/BeginnerScreens";
 import { ExpStep1, ExpStep2, ExpStep3, ExpStep4, ExpStep5, ExpResult, ExpDetail } from "./screens/expert/ExpertScreens";
@@ -15,18 +16,31 @@ import { AdmClickReport } from "./screens/admin/AdmClickReport";
 import { AdmFunnel } from "./screens/admin/AdmFunnel";
 import { AdmSystemLimit } from "./screens/admin/AdmSystemLimit";
 import { AdmOperators } from "./screens/admin/AdmOperators";
+import { AdmSharedBoard } from "./screens/admin/AdmSharedBoard";
 import { DevHub } from "./screens/dev/DevHub";
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("landing");
+  const [screen, setScreen] = useState<Screen>(() => (
+    new URLSearchParams(window.location.search).has("operator_invite") ? "auth-modal" : "landing"
+  ));
+  const [adminReturnScreen, setAdminReturnScreen] = useState<Screen | null>(null);
   const navigate = useCallback((nextScreen: Screen) => {
+    if (nextScreen.startsWith("adm-") && !getAdminToken()) {
+      setAdminReturnScreen(nextScreen);
+      setScreen("auth-modal");
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (nextScreen !== "auth-modal") {
+      setAdminReturnScreen(null);
+    }
     setScreen(nextScreen);
     window.scrollTo(0, 0);
   }, []);
 
   const screenMap: Record<Screen, React.ReactNode> = {
     landing: <Landing navigate={navigate} />,
-    "auth-modal": <AuthModal navigate={navigate} />,
+    "auth-modal": <AuthModal navigate={navigate} returnScreen={adminReturnScreen} />,
     "beg-step1": <BegStep1 navigate={navigate} />,
     "beg-step2": <BegStep2 navigate={navigate} />,
     "beg-step3": <BegStep3 navigate={navigate} />,
@@ -52,6 +66,7 @@ export default function App() {
     "adm-funnel": <AdmFunnel navigate={navigate} />,
     "adm-system-limit": <AdmSystemLimit navigate={navigate} />,
     "adm-operators": <AdmOperators navigate={navigate} />,
+    "adm-board": <AdmSharedBoard navigate={navigate} />,
     "dev-hub": <DevHub navigate={navigate} />,
   };
 

@@ -13,6 +13,32 @@ export type ApiFailure = {
 
 export type ApiEnvelope<T> = ApiSuccess<T> | ApiFailure;
 
+const ADMIN_TOKEN_KEY = "popcorn-admin-token";
+
+export function getAdminToken() {
+  return typeof window === "undefined" ? "" : window.localStorage.getItem(ADMIN_TOKEN_KEY) || "";
+}
+
+export function setAdminToken(token: string) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  }
+}
+
+export function clearAdminToken() {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+  }
+}
+
+function requestHeaders(json = false) {
+  const headers: Record<string, string> = {};
+  if (json) headers["Content-Type"] = "application/json";
+  const token = getAdminToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 export async function apiGet<TData>(
   path: string,
   params: Record<string, string> = {},
@@ -31,6 +57,7 @@ export async function apiGet<TData>(
   try {
     const response = await fetch(`${url.pathname}${url.search}`, {
       method: "GET",
+      headers: requestHeaders(),
       signal: controller.signal,
     });
 
@@ -71,9 +98,7 @@ export async function apiPost<TData, TBody>(
   try {
     const response = await fetch(path, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: requestHeaders(true),
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -115,9 +140,7 @@ export async function apiPut<TData, TBody>(
   try {
     const response = await fetch(path, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: requestHeaders(true),
       body: JSON.stringify(body),
       signal: controller.signal,
     });

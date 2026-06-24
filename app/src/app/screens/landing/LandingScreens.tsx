@@ -3,6 +3,8 @@ import type { Screen } from "../../types";
 import { C, btn } from "../../constants/design";
 import { GNB, Footer } from "../../components/common/Navigation";
 import { UserLayout } from "../../layouts/AppLayouts";
+import { acceptAdminOperatorInvite, loginAdminOperator } from "../../api/admin";
+import { setAdminToken } from "../../api/client";
 
 const POPULAR_QUOTES = [
   { rank: 1, purpose: "인기 게임", detail: "배틀그라운드 QHD", name: "RTX 4070 + R5 7600X 조합", averagePrice: "1,250,000원", views: 284, carts: 63 },
@@ -694,12 +696,36 @@ export function Landing({ navigate }: { navigate: (s: Screen) => void }) {
 }
 
 // ── Auth Modal ─────────────────────────────────────────────────────────────
-export function AuthModal({ navigate }: { navigate: (s: Screen) => void }) {
+export function AuthModal({ navigate, returnScreen }: { navigate: (s: Screen) => void; returnScreen?: Screen | null }) {
   const [failed, setFailed] = useState(false);
+  const [message, setMessage] = useState("");
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
-  return (
-    <UserLayout current="auth-modal" navigate={navigate}>
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const inviteToken = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("operator_invite") || "";
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setFailed(false);
+    setMessage("");
+    const response = inviteToken
+      ? await acceptAdminOperatorInvite({ token: inviteToken, name, password: pw })
+      : await loginAdminOperator(id, pw);
+    setLoading(false);
+    if (!response.success) {
+      setFailed(true);
+      setMessage(response.error.message);
+      return;
+    }
+    setAdminToken(response.data.token);
+    if (inviteToken) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    navigate(returnScreen || "adm-dashboard");
+  };
+
+  const modalContent = (
       <div className="flex items-center justify-center min-h-96 p-6" style={{ background: "rgba(0,0,0,0.04)" }}>
         <div className="relative rounded-2xl p-8 w-full max-w-sm" style={{ background: C.surface, boxShadow: "0 8px 40px rgba(0,0,0,0.15)" }}>
           <button
@@ -709,57 +735,96 @@ export function AuthModal({ navigate }: { navigate: (s: Screen) => void }) {
           >
             ✕
           </button>
-          <h2 className="text-xl font-bold mb-1" style={{ color: C.textStrong }}>팝콘PC 통합 로그인</h2>
-          <p className="text-xs mb-6" style={{ color: C.textSub }}>기존 팝콘PC 쇼핑몰 계정으로 로그인됩니다.</p>
+          <h2 className="text-xl font-bold mb-1" style={{ color: C.textStrong }}>{inviteToken ? "운영자 초대 수락" : "팝콘PC 운영자 로그인"}</h2>
+          <p className="text-xs mb-6" style={{ color: C.textSub }}>
+            {inviteToken ? "초대받은 운영자 정보를 입력하면 관리자 계정이 활성화됩니다." : "운영자 이메일과 비밀번호로 관리자 화면에 로그인합니다."}
+          </p>
           <div className="space-y-4">
+            {inviteToken ? (
+              <div>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: C.textBody }}>운영자명</label>
+                <input
+                  value={name} onChange={e => setName(e.target.value)}
+                  className="w-full h-10 px-3 rounded-md text-sm"
+                  style={{ border: `1px solid ${C.line}`, outline: "none" }}
+                  placeholder="이름을 입력하세요"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: C.textBody }}>이메일</label>
+                <input
+                  value={id} onChange={e => setId(e.target.value)}
+                  className="w-full h-10 px-3 rounded-md text-sm"
+                  style={{ border: `1px solid ${C.line}`, outline: "none" }}
+                  placeholder="operator@popcornpc.com"
+                />
+              </div>
+            )}
             <div>
-              <label className="text-sm font-medium block mb-1.5" style={{ color: C.textBody }}>아이디</label>
-              <input
-                value={id} onChange={e => setId(e.target.value)}
-                className="w-full h-10 px-3 rounded-md text-sm"
-                style={{ border: `1px solid ${C.line}`, outline: "none" }}
-                placeholder="아이디를 입력하세요"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium block mb-1.5" style={{ color: C.textBody }}>비밀번호</label>
+              <label className="text-sm font-medium block mb-1.5" style={{ color: C.textBody }}>{inviteToken ? "로그인 비밀번호 설정" : "비밀번호"}</label>
               <input
                 type="password" value={pw} onChange={e => setPw(e.target.value)}
                 className="w-full h-10 px-3 rounded-md text-sm"
                 style={{ border: `1px solid ${C.line}`, outline: "none" }}
-                placeholder="비밀번호를 입력하세요"
+                placeholder={inviteToken ? "8자 이상 비밀번호" : "비밀번호를 입력하세요"}
               />
             </div>
           </div>
           {failed && (
             <div className="mt-3 p-3 rounded-md text-sm" style={{ background: "#fdecea", color: C.error }}>
-              로그인에 실패했습니다. 다시 시도하거나 비회원으로 진행하세요.
+              {message || "로그인에 실패했습니다. 다시 시도하세요."}
             </div>
           )}
           <div className="flex gap-2 mt-6">
             <button
               className={btn.primary + " flex-1"}
               style={{ background: C.primary }}
-              onClick={() => { if (!id || !pw) setFailed(true); else navigate("landing"); }}
+              disabled={loading}
+              onClick={() => {
+                if ((!inviteToken && !id) || !pw || (inviteToken && !name)) {
+                  setFailed(true);
+                  setMessage(inviteToken ? "운영자명과 8자 이상 비밀번호를 입력하세요." : "이메일과 비밀번호를 입력하세요.");
+                } else {
+                  handleSubmit();
+                }
+              }}
             >
-              로그인
+              {loading ? "처리 중..." : inviteToken ? "초대 수락 및 로그인" : "운영자 로그인"}
             </button>
-            <button
-              className={btn.secondary + " flex-1"}
-              style={{ borderColor: C.line, color: C.textBody }}
-            >
-              회원가입
-            </button>
+            {!inviteToken && (
+              <button
+                className={btn.secondary + " flex-1"}
+                style={{ borderColor: C.line, color: C.textBody }}
+              >
+                회원가입
+              </button>
+            )}
           </div>
-          <button
-            onClick={() => navigate("landing")}
-            className="w-full mt-3 text-center text-xs py-2"
-            style={{ color: C.textSub }}
-          >
-            비회원으로 계속하기
-          </button>
+          {!inviteToken && (
+            <button
+              onClick={() => navigate("landing")}
+              className="w-full mt-3 text-center text-xs py-2"
+              style={{ color: C.textSub }}
+            >
+              비회원으로 계속하기
+            </button>
+          )}
         </div>
       </div>
+  );
+
+  if (inviteToken) {
+    return (
+      <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'Noto Sans KR', system-ui, sans-serif" }}>
+        {modalContent}
+      </div>
+    );
+  }
+
+  return (
+    <UserLayout current="auth-modal" navigate={navigate}>
+      {modalContent}
     </UserLayout>
   );
 }

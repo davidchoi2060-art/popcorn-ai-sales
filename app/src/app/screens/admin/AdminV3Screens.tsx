@@ -9,9 +9,15 @@ import {
   confirmAdminSourcing,
   fetchAdminProductCategories,
   fetchAdminProducts,
+  fetchAdminOperatorActivity,
+  fetchAdminOperators,
   fetchAdminSourcing,
+  inviteAdminOperator,
   parseAdminSourcing,
+  updateAdminOperator,
+  updateAdminOperatorStatus,
   updateAdminSourcingMatch,
+  type AdminOperatorActivity,
   type AdminProductCategoryOption,
   type AdminProductRow,
   type AdminSourcingItem,
@@ -2128,8 +2134,11 @@ const OP_ACTIVITY_LOGS = [
 ];
 
 export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
-  const [operators, setOperators] = useState<Operator[]>(INITIAL_OPERATORS);
+  const [operators, setOperators] = useState<Operator[]>([]);
+  const [activityLogs, setActivityLogs] = useState<AdminOperatorActivity[]>([]);
   const [activeTab, setActiveTab] = useState<"list" | "log">("list");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // 초대 모달
   const [showInvite, setShowInvite] = useState(false);
@@ -2137,6 +2146,7 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
   const [inviteRole, setInviteRole] = useState<OpRole>("MD");
   const [inviteMemo, setInviteMemo] = useState("");
   const [inviteSent, setInviteSent] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState("");
 
   // 편집 모달
   const [editOp, setEditOp] = useState<Operator | null>(null);
@@ -2147,6 +2157,37 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
   // 상태 변경 확인 모달
   const [confirmOp, setConfirmOp] = useState<{ op: Operator; next: OpStatus } | null>(null);
 
+  const loadOperators = async () => {
+    setLoading(true);
+    setError("");
+    const [operatorsResponse, activityResponse] = await Promise.all([
+      fetchAdminOperators(),
+      fetchAdminOperatorActivity(),
+    ]);
+    if (operatorsResponse.success) {
+      setOperators(operatorsResponse.data.items.map(op => ({
+        id: op.id,
+        name: op.name,
+        email: op.email,
+        role: op.role,
+        status: op.status,
+        lastLogin: op.lastLogin,
+        createdAt: op.createdAt,
+        memo: op.memo,
+      })));
+    } else {
+      setError(operatorsResponse.error.message);
+    }
+    if (activityResponse.success) {
+      setActivityLogs(activityResponse.data.items);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadOperators();
+  }, []);
+
   const openEdit = (op: Operator) => {
     setEditOp(op);
     setEditRole(op.role);
@@ -2154,29 +2195,44 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
     setEditSaved(false);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editOp) return;
-    setOperators(p => p.map(o => o.id === editOp.id ? { ...o, role: editRole, memo: editMemo } : o));
+    const response = await updateAdminOperator(editOp.id, { role: editRole, memo: editMemo });
+    if (!response.success) {
+      setError(response.error.message);
+      return;
+    }
+    setOperators(p => p.map(o => o.id === editOp.id ? { ...o, role: response.data.role, memo: response.data.memo } : o));
     setEditSaved(true);
     setTimeout(() => setEditOp(null), 1200);
+    loadOperators();
   };
 
-  const applyStatusChange = () => {
+  const applyStatusChange = async () => {
     if (!confirmOp) return;
-    setOperators(p => p.map(o => o.id === confirmOp.op.id ? { ...o, status: confirmOp.next } : o));
+    const response = await updateAdminOperatorStatus(confirmOp.op.id, confirmOp.next);
+    if (!response.success) {
+      setError(response.error.message);
+      setConfirmOp(null);
+      return;
+    }
+    setOperators(p => p.map(o => o.id === confirmOp.op.id ? { ...o, status: response.data.status } : o));
     setConfirmOp(null);
+    loadOperators();
   };
 
-  const sendInvite = () => {
+  const sendInvite = async () => {
     if (!inviteEmail) return;
-    const newOp: Operator = {
-      id: Date.now(), name: "(초대중)", email: inviteEmail,
-      role: inviteRole, status: "초대중", lastLogin: "-",
-      createdAt: new Date().toISOString().slice(0, 10), memo: inviteMemo,
-    };
-    setOperators(p => [...p, newOp]);
+    const response = await inviteAdminOperator({ email: inviteEmail, role: inviteRole, memo: inviteMemo });
+    if (!response.success) {
+      setError(response.error.message);
+      return;
+    }
+    const op = response.data.operator;
+    setOperators(p => [{ id: op.id, name: op.name, email: op.email, role: op.role, status: op.status, lastLogin: op.lastLogin, createdAt: op.createdAt, memo: op.memo }, ...p.filter(x => x.id !== op.id)]);
+    setInviteUrl(response.data.inviteUrl);
     setInviteSent(true);
-    setTimeout(() => { setShowInvite(false); setInviteEmail(""); setInviteMemo(""); setInviteSent(false); }, 1500);
+    loadOperators();
   };
 
   const activeCount  = operators.filter(o => o.status === "활성").length;
@@ -2196,6 +2252,18 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
           + 운영자 초대
         </button>
       </AdminPageHeader>
+
+      {error && (
+        <div className="mb-4 rounded-xl px-4 py-3 text-sm" style={{ background: "#fdecea", color: C.error, border: `1px solid ${C.error}33` }}>
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="mb-4 rounded-xl px-4 py-3 text-sm" style={{ background: C.primaryLight, color: C.primary }}>
+          운영자 DB 정보를 불러오는 중입니다.
+        </div>
+      )}
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -2342,9 +2410,9 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
             <span className="text-xs" style={{ color: C.textSub }}>개인정보 마스킹 적용 · IP 일부 비식별</span>
           </div>
           <div style={{ background: C.surface }}>
-            {OP_ACTIVITY_LOGS.map((l, i) => (
+            {activityLogs.map((l, i) => (
               <div key={i} className="flex items-center gap-4 px-5 py-4"
-                style={{ borderBottom: i < OP_ACTIVITY_LOGS.length - 1 ? `1px solid ${C.line}` : "none" }}>
+                style={{ borderBottom: i < activityLogs.length - 1 ? `1px solid ${C.line}` : "none" }}>
                 {/* 시간 */}
                 <span className="text-xs font-mono w-12 shrink-0" style={{ color: C.textSub }}>{l.time}</span>
                 {/* 운영자 아바타 */}
@@ -2417,9 +2485,9 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
             <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: `1px solid ${C.line}` }}>
               <div>
                 <h2 className="text-base font-bold" style={{ color: C.textStrong }}>운영자 초대</h2>
-                <p className="text-xs mt-0.5" style={{ color: C.textSub }}>초대 이메일이 발송되며 링크 클릭 시 계정이 활성화됩니다.</p>
+                <p className="text-xs mt-0.5" style={{ color: C.textSub }}>초대 링크를 전달하면 링크 접속 시 계정이 활성화됩니다.</p>
               </div>
-              <button onClick={() => setShowInvite(false)}
+              <button onClick={() => { setShowInvite(false); setInviteSent(false); setInviteUrl(""); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
                 style={{ background: C.bg, color: C.textSub }}>✕</button>
             </div>
@@ -2475,16 +2543,29 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
                   className="w-full h-10 px-3 rounded-lg text-sm"
                   style={{ border: `1px solid ${C.line}` }} />
               </div>
+              {inviteUrl && (
+                <div className="p-3 rounded-xl" style={{ background: C.primaryLight, border: `1px solid ${C.primary}33` }}>
+                  <p className="text-xs font-semibold mb-2" style={{ color: C.primary }}>초대 링크</p>
+                  <p className="text-xs break-all mb-3" style={{ color: C.textBody }}>{inviteUrl}</p>
+                  <button
+                    onClick={() => navigator.clipboard?.writeText(inviteUrl)}
+                    className="h-8 px-3 rounded-lg text-xs font-bold"
+                    style={{ background: C.primary, color: "#fff" }}
+                  >
+                    링크 복사
+                  </button>
+                </div>
+              )}
             </div>
             {/* 모달 푸터 */}
             <div className="px-6 py-4 flex gap-2" style={{ borderTop: `1px solid ${C.line}`, background: C.bg }}>
-              <button onClick={() => setShowInvite(false)}
+              <button onClick={() => { setShowInvite(false); setInviteSent(false); setInviteUrl(""); }}
                 className="flex-1 h-10 rounded-xl text-sm font-semibold"
                 style={{ border: `1px solid ${C.line}`, color: C.textBody }}>취소</button>
               <button onClick={sendInvite} disabled={!inviteEmail}
                 className="flex-1 h-10 rounded-xl text-sm font-bold text-white"
                 style={{ background: inviteEmail ? C.primary : "#ccc" }}>
-                {inviteSent ? "✓ 초대 발송 완료!" : "초대 이메일 발송"}
+                {inviteSent ? "✓ 초대 링크 생성 완료" : "초대 링크 생성"}
               </button>
             </div>
           </div>

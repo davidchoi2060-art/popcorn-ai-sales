@@ -3,9 +3,11 @@ import type React from 'react';
 import type { Screen } from '../types';
 import { C } from '../constants/design';
 import { GNB, Footer } from '../components/common/Navigation';
+import { clearAdminToken, getAdminToken } from '../api/client';
 
 const adminMenus: { label: string; screens: Screen[]; target: Screen }[] = [
   { label: "메인 대시보드", screens: ["adm-dashboard"], target: "adm-dashboard" },
+  { label: "공유게시판", screens: ["adm-board"], target: "adm-board" },
   { label: "상품/재고", screens: ["adm-product-master", "adm-csv-import"], target: "adm-product-master" },
   { label: "제품 소싱", screens: ["adm-sourcing"], target: "adm-sourcing" },
   { label: "가격/정책", screens: ["adm-price-policy", "adm-recommend-weights"], target: "adm-price-policy" },
@@ -13,6 +15,28 @@ const adminMenus: { label: string; screens: Screen[]; target: Screen }[] = [
   { label: "운영자 관리", screens: ["adm-operators"], target: "adm-operators" },
   { label: "시스템 제어", screens: ["adm-system-limit", "dev-hub"], target: "adm-system-limit" },
 ];
+
+function getAdminProfile() {
+  const token = getAdminToken();
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+
+  try {
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const json = decodeURIComponent(
+      Array.from(atob(padded), char => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`).join(""),
+    );
+    const data = JSON.parse(json) as { name?: string; email?: string; role?: string };
+    return {
+      name: data.name || "운영자",
+      email: data.email || "",
+      role: data.role || "",
+    };
+  } catch {
+    return null;
+  }
+}
 
 export function AdminLayout({
   current,
@@ -28,6 +52,7 @@ export function AdminLayout({
   const activeMenu = adminMenus.find(m => m.screens.includes(current));
   const [isLnbOpen, setIsLnbOpen] = useState(true);
   const lnbWidth = isLnbOpen ? 220 : 64;
+  const adminProfile = getAdminProfile();
 
   return (
     <div className="flex min-h-screen" style={{ background: C.bg, fontFamily: "'Noto Sans KR', system-ui, sans-serif" }}>
@@ -90,7 +115,28 @@ export function AdminLayout({
           <span>/</span>
           <span style={{ color: C.textBody }}>{breadcrumb || activeMenu?.label}</span>
           <div className="flex-1" />
-          <span style={{ color: C.textBody, fontWeight: 600 }}>admin@popcornpc.com</span>
+          {adminProfile && (
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0" style={{ background: C.primary }}>
+                {adminProfile.name.slice(0, 1)}
+              </div>
+              <div className="min-w-0 text-right leading-tight">
+                <div className="truncate text-sm font-bold" style={{ color: C.textStrong }}>{adminProfile.name}</div>
+                <div className="truncate text-[11px]" style={{ color: C.textSub }}>{adminProfile.email}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  clearAdminToken();
+                  navigate("landing");
+                }}
+                className="h-8 px-3 rounded-md text-xs font-semibold shrink-0"
+                style={{ border: `1px solid ${C.line}`, color: C.textBody, background: C.surface }}
+              >
+                로그아웃
+              </button>
+            </div>
+          )}
         </div>
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
