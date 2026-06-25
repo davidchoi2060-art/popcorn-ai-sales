@@ -6,6 +6,8 @@ import {
 } from "recharts";
 import type { Screen } from "../../types";
 import {
+  cancelAdminOperatorInvite,
+  resendAdminOperatorInvite,
   confirmAdminSourcing,
   fetchAdminProductCategories,
   fetchAdminProducts,
@@ -2157,6 +2159,9 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
   // 상태 변경 확인 모달
   const [confirmOp, setConfirmOp] = useState<{ op: Operator; next: OpStatus } | null>(null);
 
+  // 초대 재발송 결과(새 링크) 모달
+  const [resendResult, setResendResult] = useState<{ email: string; inviteUrl: string } | null>(null);
+
   const loadOperators = async () => {
     setLoading(true);
     setError("");
@@ -2232,6 +2237,27 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
     setOperators(p => [{ id: op.id, name: op.name, email: op.email, role: op.role, status: op.status, lastLogin: op.lastLogin, createdAt: op.createdAt, memo: op.memo }, ...p.filter(x => x.id !== op.id)]);
     setInviteUrl(response.data.inviteUrl);
     setInviteSent(true);
+    loadOperators();
+  };
+
+  const cancelInvite = async (op: Operator) => {
+    if (!window.confirm(`${op.email} 초대를 취소할까요? 기존 초대 링크는 더 이상 사용할 수 없으며 목록에서 제거됩니다.`)) return;
+    const response = await cancelAdminOperatorInvite(op.id);
+    if (!response.success) {
+      setError(response.error.message);
+      return;
+    }
+    setOperators(p => p.filter(o => o.id !== op.id));
+    loadOperators();
+  };
+
+  const resendInvite = async (op: Operator) => {
+    const response = await resendAdminOperatorInvite(op.id);
+    if (!response.success) {
+      setError(response.error.message);
+      return;
+    }
+    setResendResult({ email: op.email, inviteUrl: response.data.inviteUrl });
     loadOperators();
   };
 
@@ -2382,11 +2408,18 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
                           </button>
                         )}
                         {op.status === "초대중" && (
-                          <button
-                            className="px-3 h-7 rounded-md text-xs font-semibold"
-                            style={{ background: "#fff8e1", color: C.warning }}>
-                            재발송
-                          </button>
+                          <>
+                            <button onClick={() => resendInvite(op)}
+                              className="px-3 h-7 rounded-md text-xs font-semibold"
+                              style={{ background: "#fff8e1", color: C.warning }}>
+                              재발송
+                            </button>
+                            <button onClick={() => cancelInvite(op)}
+                              className="px-3 h-7 rounded-md text-xs font-semibold"
+                              style={{ background: "#fdecea", color: C.error }}>
+                              초대취소
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -2567,6 +2600,40 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
                 style={{ background: inviteEmail ? C.primary : "#ccc" }}>
                 {inviteSent ? "✓ 초대 링크 생성 완료" : "초대 링크 생성"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ 초대 재발송 결과 모달 ══ */}
+      {resendResult && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: "rgba(0,0,0,0.45)" }}>
+          <div className="rounded-2xl overflow-hidden w-full max-w-md" style={{ background: C.surface, boxShadow: "0 24px 80px rgba(0,0,0,0.25)" }}>
+            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: `1px solid ${C.line}` }}>
+              <div>
+                <h2 className="text-base font-bold" style={{ color: C.textStrong }}>초대 재발송 완료</h2>
+                <p className="text-xs mt-0.5" style={{ color: C.textSub }}>{resendResult.email} · 새 링크가 발급되어 이전 링크는 무효화되었습니다.</p>
+              </div>
+              <button onClick={() => setResendResult(null)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
+                style={{ background: C.bg, color: C.textSub }}>✕</button>
+            </div>
+            <div className="px-6 py-5">
+              <div className="p-3 rounded-xl" style={{ background: C.primaryLight, border: `1px solid ${C.primary}33` }}>
+                <p className="text-xs font-semibold mb-2" style={{ color: C.primary }}>새 초대 링크 (유효기간 7일)</p>
+                <p className="text-xs break-all mb-3" style={{ color: C.textBody }}>{resendResult.inviteUrl}</p>
+                <button
+                  onClick={() => navigator.clipboard?.writeText(resendResult.inviteUrl)}
+                  className="h-8 px-3 rounded-lg text-xs font-bold"
+                  style={{ background: C.primary, color: "#fff" }}>
+                  링크 복사
+                </button>
+              </div>
+            </div>
+            <div className="px-6 py-4 flex" style={{ borderTop: `1px solid ${C.line}`, background: C.bg }}>
+              <button onClick={() => setResendResult(null)}
+                className="flex-1 h-10 rounded-xl text-sm font-bold text-white"
+                style={{ background: C.primary }}>확인</button>
             </div>
           </div>
         </div>

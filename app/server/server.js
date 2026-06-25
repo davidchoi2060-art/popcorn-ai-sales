@@ -20,6 +20,8 @@ import {
   handleAdminOperatorAcceptInvite,
   handleAdminOperatorActivity,
   handleAdminOperatorInvite,
+  handleAdminOperatorInviteCancel,
+  handleAdminOperatorInviteResend,
   handleAdminOperatorLogin,
   handleAdminOperators,
   handleAdminOperatorStatus,
@@ -171,6 +173,8 @@ const server = http.createServer(async (request, response) => {
     const productStatusMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/status$/);
     const operatorMatch = url.pathname.match(/^\/api\/admin\/operators\/([^/]+)$/);
     const operatorStatusMatch = url.pathname.match(/^\/api\/admin\/operators\/([^/]+)\/status$/);
+    const operatorInviteCancelMatch = url.pathname.match(/^\/api\/admin\/operators\/([^/]+)\/invite\/cancel$/);
+    const operatorInviteResendMatch = url.pathname.match(/^\/api\/admin\/operators\/([^/]+)\/invite\/resend$/);
     const changeRequestStatusMatch = url.pathname.match(/^\/api\/admin\/change-requests\/([^/]+)\/status$/);
     const sourcingItemMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)$/);
     const sourcingCandidatesMatch = url.pathname.match(/^\/api\/admin\/sourcing\/([^/]+)\/candidates$/);
@@ -206,6 +210,18 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "PUT" && operatorStatusMatch) {
       const body = await readJson(request);
       const result = await handleAdminOperatorStatus(request, decodeURIComponent(operatorStatusMatch[1]), body);
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && operatorInviteCancelMatch) {
+      const result = await handleAdminOperatorInviteCancel(request, decodeURIComponent(operatorInviteCancelMatch[1]));
+      sendJson(response, result.status, result.body);
+      return;
+    }
+
+    if (request.method === "PUT" && operatorInviteResendMatch) {
+      const result = await handleAdminOperatorInviteResend(request, decodeURIComponent(operatorInviteResendMatch[1]));
       sendJson(response, result.status, result.body);
       return;
     }

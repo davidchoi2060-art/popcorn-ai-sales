@@ -373,6 +373,14 @@ export function updateAdminOperatorStatus(id: number, status: AdminOperatorStatu
   return apiPut<AdminOperator, { status: AdminOperatorStatus }>(`/api/admin/operators/${id}/status`, { status });
 }
 
+export function cancelAdminOperatorInvite(id: number) {
+  return apiPut<AdminOperator, Record<string, never>>(`/api/admin/operators/${id}/invite/cancel`, {});
+}
+
+export function resendAdminOperatorInvite(id: number) {
+  return apiPut<AdminOperatorInviteResponse, Record<string, never>>(`/api/admin/operators/${id}/invite/resend`, {});
+}
+
 export function fetchAdminChangeRequests() {
   return apiGet<{ items: AdminChangeRequest[] }>("/api/admin/change-requests");
 }

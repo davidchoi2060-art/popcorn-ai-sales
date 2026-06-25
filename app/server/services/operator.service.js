@@ -268,3 +268,40 @@ export async function updateOperatorStatus(operatorId, status, actor = {}) {
   await logOperatorActivity({ operatorId: actor.operator_id || null, action: "운영자 상태 변경", detail: `${rows[0].email} → ${status}`, ip: actor.ip || "" });
   return mapOperator(rows[0]);
 }
+
+export async function cancelOperatorInvite(operatorId, actor = {}) {
+  // 한 번도 가입하지 않은 초대 레코드이므로 행을 삭제한다.
+  // 활동 로그의 operator_id 는 ON DELETE SET NULL 로 보존되며, 취소 자체는 관리자(actor) 명의로 기록한다.
+  const { rows } = await pool.query(
+    `DELETE FROM admin_operators
+     WHERE operator_id = $1
+       AND status = '초대중'
+       AND role <> '슈퍼관리자'
+     RETURNING operator_id, name, email, role, status, memo, last_login_at, created_at, accepted_at, invite_expires_at`,
+    [operatorId],
+  );
+  if (!rows[0]) return null;
+  await logOperatorActivity({ operatorId: actor.operator_id || null, action: "운영자 초대 취소", detail: rows[0].email, ip: actor.ip || "" });
+  return mapOperator(rows[0]);
+}
+
+export async function resendOperatorInvite(operatorId, { ip = "", origin = "" } = {}) {
+  const token = crypto.randomBytes(32).toString("base64url");
+  const tokenHash = hashToken(token);
+  const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+  const { rows } = await pool.query(
+    `UPDATE admin_operators
+     SET invite_token_hash = $1,
+         invite_expires_at = $2,
+         updated_at = now()
+     WHERE operator_id = $3
+       AND status = '초대중'
+       AND role <> '슈퍼관리자'
+     RETURNING operator_id, name, email, role, status, memo, last_login_at, created_at, accepted_at, invite_expires_at`,
+    [tokenHash, expires, operatorId],
+  );
+  if (!rows[0]) return null;
+  await logOperatorActivity({ operatorId: rows[0].operator_id, action: "운영자 초대 재발송", detail: rows[0].email, ip });
+  const inviteUrl = `${origin || "http://127.0.0.1:5173"}/?operator_invite=${encodeURIComponent(token)}`;
+  return { operator: mapOperator(rows[0]), inviteUrl, expiresAt: expires.toISOString() };
+}

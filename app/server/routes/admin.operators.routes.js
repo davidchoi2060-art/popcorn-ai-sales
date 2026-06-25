@@ -1,9 +1,11 @@
 import {
   acceptOperatorInvite,
+  cancelOperatorInvite,
   inviteOperator,
   listOperatorActivity,
   listOperators,
   loginOperator,
+  resendOperatorInvite,
   updateOperator,
   updateOperatorStatus,
   verifyAdminToken,
@@ -100,6 +102,27 @@ export async function handleAdminOperatorStatus(request, operatorId, body) {
     const actor = await requireAdmin(request);
     const data = await updateOperatorStatus(operatorId, body.status, actor);
     return data ? success(data) : failure(404, "OPERATOR_NOT_FOUND", "운영자를 찾을 수 없습니다.");
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function handleAdminOperatorInviteCancel(request, operatorId) {
+  try {
+    const actor = await requireAdmin(request);
+    const data = await cancelOperatorInvite(operatorId, actor);
+    return data ? success(data) : failure(404, "OPERATOR_INVITE_NOT_FOUND", "취소할 초대중 운영자를 찾을 수 없습니다.");
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function handleAdminOperatorInviteResend(request, operatorId) {
+  try {
+    const actor = await requireAdmin(request);
+    const origin = request.headers.origin || request.headers.referer?.replace(/\/[^/]*$/, "") || "";
+    const data = await resendOperatorInvite(operatorId, { ip: actor.ip, origin });
+    return data ? success(data) : failure(404, "OPERATOR_INVITE_NOT_FOUND", "재발송할 초대중 운영자를 찾을 수 없습니다.");
   } catch (error) {
     return handleError(error);
   }
