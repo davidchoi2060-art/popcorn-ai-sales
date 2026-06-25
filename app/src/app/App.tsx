@@ -1,7 +1,29 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type React from "react";
-import type { Screen } from "./types";
+import { SCREENS, type Screen } from "./types";
 import { getAdminToken } from "./api/client";
+
+const SCREEN_SET = new Set<string>(SCREENS);
+
+// 현재 URL(쿼리스트링)에서 화면을 해석한다. 초대 링크는 항상 인증 모달로.
+function resolveScreenFromUrl(): Screen {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("operator_invite")) return "auth-modal";
+  const s = params.get("screen");
+  return s && SCREEN_SET.has(s) ? (s as Screen) : "landing";
+}
+
+// 관리자 화면은 토큰이 없으면 인증 모달로 가드. 표시할 화면과 복귀 대상을 반환.
+function guardScreen(target: Screen): { screen: Screen; returnScreen: Screen | null } {
+  if (target.startsWith("adm-") && !getAdminToken()) {
+    return { screen: "auth-modal", returnScreen: target };
+  }
+  return { screen: target, returnScreen: null };
+}
+
+function urlForScreen(screen: Screen): string {
+  return screen === "landing" ? window.location.pathname : `${window.location.pathname}?screen=${screen}`;
+}
 import { Landing, AuthModal } from "./screens/landing/LandingScreens";
 import { BegStep1, BegStep2, BegStep3, BegStep4, BegStep5, BegResult, BegDetail } from "./screens/beginner/BeginnerScreens";
 import { ExpStep1, ExpStep2, ExpStep3, ExpStep4, ExpStep5, ExpResult, ExpDetail } from "./screens/expert/ExpertScreens";
@@ -20,22 +42,31 @@ import { AdmSharedBoard } from "./screens/admin/AdmSharedBoard";
 import { DevHub } from "./screens/dev/DevHub";
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>(() => (
-    new URLSearchParams(window.location.search).has("operator_invite") ? "auth-modal" : "landing"
-  ));
-  const [adminReturnScreen, setAdminReturnScreen] = useState<Screen | null>(null);
+  const [screen, setScreen] = useState<Screen>(() => guardScreen(resolveScreenFromUrl()).screen);
+  const [adminReturnScreen, setAdminReturnScreen] = useState<Screen | null>(() => guardScreen(resolveScreenFromUrl()).returnScreen);
+
   const navigate = useCallback((nextScreen: Screen) => {
-    if (nextScreen.startsWith("adm-") && !getAdminToken()) {
-      setAdminReturnScreen(nextScreen);
-      setScreen("auth-modal");
-      window.scrollTo(0, 0);
-      return;
-    }
-    if (nextScreen !== "auth-modal") {
+    const { screen: target, returnScreen } = guardScreen(nextScreen);
+    if (returnScreen) {
+      setAdminReturnScreen(returnScreen);
+    } else if (nextScreen !== "auth-modal") {
       setAdminReturnScreen(null);
     }
-    setScreen(nextScreen);
+    setScreen(target);
     window.scrollTo(0, 0);
+    window.history.pushState({ screen: target }, "", urlForScreen(target));
+  }, []);
+
+  // 브라우저 뒤로/앞으로(popstate): URL을 기준으로 화면 복원.
+  useEffect(() => {
+    const onPopState = () => {
+      const { screen: target, returnScreen } = guardScreen(resolveScreenFromUrl());
+      setAdminReturnScreen(returnScreen);
+      setScreen(target);
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   const screenMap: Record<Screen, React.ReactNode> = {
