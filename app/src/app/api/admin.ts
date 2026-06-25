@@ -178,6 +178,7 @@ export type AdminOperatorAuthResponse = {
 export type AdminOperatorInviteResponse = {
   operator: AdminOperator;
   inviteUrl: string;
+  token: string;
   expiresAt: string;
 };
 

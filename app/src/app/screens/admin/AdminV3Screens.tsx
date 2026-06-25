@@ -2135,6 +2135,41 @@ const OP_ACTIVITY_LOGS = [
   { time: "어제",  name: "이운영",   action: "권한 변경",            detail: "정인턴 → 비활성 처리",  ip: "192.168.***.21" },
 ];
 
+// 초대 링크는 호스트(IP)와 무관하게 같은 토큰으로 동작한다(nginx server_name _).
+// 수신자가 Tailscale 망과 사내 LAN 중 어느 쪽이든 쓸 수 있도록 양쪽 호스트 링크를 모두 제시한다.
+// VITE_INVITE_HOSTS 로 덮어쓸 수 있다(쉼표 구분).
+const INVITE_HOSTS = ((import.meta.env.VITE_INVITE_HOSTS as string | undefined) || "http://100.123.164.85,http://192.168.0.20")
+  .split(",").map(s => s.trim()).filter(Boolean);
+
+function inviteHostLabel(host: string): string {
+  if (host.includes("100.123.164.85")) return "Tailscale 망";
+  if (host.includes("192.168.")) return "사내 LAN";
+  return "현재 접속 주소";
+}
+
+function buildInviteLinks(token: string): { label: string; url: string }[] {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const hosts = Array.from(new Set([origin, ...INVITE_HOSTS].filter(Boolean)));
+  return hosts.map(host => ({ label: inviteHostLabel(host), url: `${host}/?operator_invite=${encodeURIComponent(token)}` }));
+}
+
+function InviteLinkList({ token }: { token: string }) {
+  return (
+    <div className="space-y-2">
+      {buildInviteLinks(token).map(({ label, url }) => (
+        <div key={url} className="p-3 rounded-xl" style={{ background: C.primaryLight, border: `1px solid ${C.primary}33` }}>
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-xs font-semibold" style={{ color: C.primary }}>{label}</p>
+            <button onClick={() => navigator.clipboard?.writeText(url)}
+              className="h-7 px-2.5 rounded-lg text-xs font-bold" style={{ background: C.primary, color: "#fff" }}>복사</button>
+          </div>
+          <p className="text-xs break-all" style={{ color: C.textBody }}>{url}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [activityLogs, setActivityLogs] = useState<AdminOperatorActivity[]>([]);
@@ -2148,7 +2183,7 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
   const [inviteRole, setInviteRole] = useState<OpRole>("MD");
   const [inviteMemo, setInviteMemo] = useState("");
   const [inviteSent, setInviteSent] = useState(false);
-  const [inviteUrl, setInviteUrl] = useState("");
+  const [inviteToken, setInviteToken] = useState("");
 
   // 편집 모달
   const [editOp, setEditOp] = useState<Operator | null>(null);
@@ -2160,7 +2195,7 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
   const [confirmOp, setConfirmOp] = useState<{ op: Operator; next: OpStatus } | null>(null);
 
   // 초대 재발송 결과(새 링크) 모달
-  const [resendResult, setResendResult] = useState<{ email: string; inviteUrl: string } | null>(null);
+  const [resendResult, setResendResult] = useState<{ email: string; token: string } | null>(null);
 
   const loadOperators = async () => {
     setLoading(true);
@@ -2235,7 +2270,7 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
     }
     const op = response.data.operator;
     setOperators(p => [{ id: op.id, name: op.name, email: op.email, role: op.role, status: op.status, lastLogin: op.lastLogin, createdAt: op.createdAt, memo: op.memo }, ...p.filter(x => x.id !== op.id)]);
-    setInviteUrl(response.data.inviteUrl);
+    setInviteToken(response.data.token);
     setInviteSent(true);
     loadOperators();
   };
@@ -2257,7 +2292,7 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
       setError(response.error.message);
       return;
     }
-    setResendResult({ email: op.email, inviteUrl: response.data.inviteUrl });
+    setResendResult({ email: op.email, token: response.data.token });
     loadOperators();
   };
 
@@ -2520,7 +2555,7 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
                 <h2 className="text-base font-bold" style={{ color: C.textStrong }}>운영자 초대</h2>
                 <p className="text-xs mt-0.5" style={{ color: C.textSub }}>초대 링크를 전달하면 링크 접속 시 계정이 활성화됩니다.</p>
               </div>
-              <button onClick={() => { setShowInvite(false); setInviteSent(false); setInviteUrl(""); }}
+              <button onClick={() => { setShowInvite(false); setInviteSent(false); setInviteToken(""); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
                 style={{ background: C.bg, color: C.textSub }}>✕</button>
             </div>
@@ -2576,23 +2611,16 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
                   className="w-full h-10 px-3 rounded-lg text-sm"
                   style={{ border: `1px solid ${C.line}` }} />
               </div>
-              {inviteUrl && (
-                <div className="p-3 rounded-xl" style={{ background: C.primaryLight, border: `1px solid ${C.primary}33` }}>
-                  <p className="text-xs font-semibold mb-2" style={{ color: C.primary }}>초대 링크</p>
-                  <p className="text-xs break-all mb-3" style={{ color: C.textBody }}>{inviteUrl}</p>
-                  <button
-                    onClick={() => navigator.clipboard?.writeText(inviteUrl)}
-                    className="h-8 px-3 rounded-lg text-xs font-bold"
-                    style={{ background: C.primary, color: "#fff" }}
-                  >
-                    링크 복사
-                  </button>
+              {inviteToken && (
+                <div>
+                  <p className="text-xs font-semibold mb-2" style={{ color: C.primary }}>초대 링크 (유효기간 7일) · 수신자 네트워크에 맞는 링크 전달</p>
+                  <InviteLinkList token={inviteToken} />
                 </div>
               )}
             </div>
             {/* 모달 푸터 */}
             <div className="px-6 py-4 flex gap-2" style={{ borderTop: `1px solid ${C.line}`, background: C.bg }}>
-              <button onClick={() => { setShowInvite(false); setInviteSent(false); setInviteUrl(""); }}
+              <button onClick={() => { setShowInvite(false); setInviteSent(false); setInviteToken(""); }}
                 className="flex-1 h-10 rounded-xl text-sm font-semibold"
                 style={{ border: `1px solid ${C.line}`, color: C.textBody }}>취소</button>
               <button onClick={sendInvite} disabled={!inviteEmail}
@@ -2619,16 +2647,8 @@ export function AdmOperators({ navigate }: { navigate: (s: Screen) => void }) {
                 style={{ background: C.bg, color: C.textSub }}>✕</button>
             </div>
             <div className="px-6 py-5">
-              <div className="p-3 rounded-xl" style={{ background: C.primaryLight, border: `1px solid ${C.primary}33` }}>
-                <p className="text-xs font-semibold mb-2" style={{ color: C.primary }}>새 초대 링크 (유효기간 7일)</p>
-                <p className="text-xs break-all mb-3" style={{ color: C.textBody }}>{resendResult.inviteUrl}</p>
-                <button
-                  onClick={() => navigator.clipboard?.writeText(resendResult.inviteUrl)}
-                  className="h-8 px-3 rounded-lg text-xs font-bold"
-                  style={{ background: C.primary, color: "#fff" }}>
-                  링크 복사
-                </button>
-              </div>
+              <p className="text-xs font-semibold mb-2" style={{ color: C.primary }}>새 초대 링크 (유효기간 7일) · 수신자 네트워크에 맞는 링크 전달</p>
+              <InviteLinkList token={resendResult.token} />
             </div>
             <div className="px-6 py-4 flex" style={{ borderTop: `1px solid ${C.line}`, background: C.bg }}>
               <button onClick={() => setResendResult(null)}

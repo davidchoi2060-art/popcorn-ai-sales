@@ -158,7 +158,7 @@ export async function inviteOperator({ email, role, memo }, { ip = "", origin = 
   );
   await logOperatorActivity({ operatorId: rows[0].operator_id, action: "운영자 초대", detail: cleanEmail, ip });
   const inviteUrl = `${origin || "http://127.0.0.1:5173"}/?operator_invite=${encodeURIComponent(token)}`;
-  return { operator: mapOperator(rows[0]), inviteUrl, expiresAt: expires.toISOString() };
+  return { operator: mapOperator(rows[0]), inviteUrl, token, expiresAt: expires.toISOString() };
 }
 
 export async function acceptOperatorInvite({ token, password, name }) {
@@ -303,5 +303,5 @@ export async function resendOperatorInvite(operatorId, { ip = "", origin = "" } 
   if (!rows[0]) return null;
   await logOperatorActivity({ operatorId: rows[0].operator_id, action: "운영자 초대 재발송", detail: rows[0].email, ip });
   const inviteUrl = `${origin || "http://127.0.0.1:5173"}/?operator_invite=${encodeURIComponent(token)}`;
-  return { operator: mapOperator(rows[0]), inviteUrl, expiresAt: expires.toISOString() };
+  return { operator: mapOperator(rows[0]), inviteUrl, token, expiresAt: expires.toISOString() };
 }
