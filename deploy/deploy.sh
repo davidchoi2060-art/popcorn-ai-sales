@@ -26,7 +26,7 @@ echo "[deploy] 5/5 verify (via nginx :80)..."
 sleep 2
 health=$(curl -s -m 8 http://127.0.0.1/api/dev/health | grep -o '"ok":[a-z]*' | head -1 || true)
 code=$(curl -s -m 8 -o /dev/null -w '%{http_code}' -X PUT http://127.0.0.1/api/admin/operators/0/invite/resend || true)
-bundle=$(curl -s -m 8 http://127.0.0.1/ | grep -o 'index-[A-Za-z0-9]*\.js' | head -1 || true)
+bundle=$(curl -s -m 8 http://127.0.0.1/ | grep -oE 'index-[A-Za-z0-9_-]+\.js' | head -1 || true)
 echo "[deploy]   health        : ${health:-unknown}   (ok:true 면 DB 연결 정상)"
 echo "[deploy]   resend route  : HTTP ${code:-?}   (401=정상 배포, 404=구버전)"
 echo "[deploy]   served bundle : ${bundle:-unknown}"
