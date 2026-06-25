@@ -150,10 +150,13 @@ app/
 GitHub: `https://github.com/davidchoi2060-art/popcorn-ai-sales.git`
 서버 경로: `popcornpc@popcornpc-B860M-AORUS-ELITE:/srv/projects/popcorn-ai-sales`
 
+**인프라 정본**: 서버 작업(포트·nginx 라우트·공유 DB) 전 `/srv/projects/SHARED.md`를 읽고, 포트/라우트를 점유하면 거기에 등록한다. (SHARED.md는 별도 repo에서 관리)
+
 ```bash
 # 최초
 cd /srv/projects && git clone https://github.com/davidchoi2060-art/popcorn-ai-sales.git
 # 갱신
 cd /srv/projects/popcorn-ai-sales && git pull origin main
 # 실행은 0번 "스택/실행" 참고. DB(100.123.164.85)는 Tailscale 망 — 서버가 같은 망에 있어야 닿음.
+# 배포: bash deploy/deploy.sh  (git pull→build→pm2 restart popcorn-api→검증. nginx default 사이트가 app/dist 서빙)
 ```
