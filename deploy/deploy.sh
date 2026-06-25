@@ -9,8 +9,11 @@ PM2_APP="${POPCORN_PM2_APP:-popcorn-api}"
 BRANCH="${POPCORN_BRANCH:-main}"
 
 cd "$REPO"
-echo "[deploy] 1/5 git pull ($BRANCH)..."
-git pull origin "$BRANCH"
+echo "[deploy] 1/5 sync to origin/$BRANCH (hard reset; 서버는 GitHub 미러)..."
+# 배포 서버는 GitHub의 main을 그대로 반영한다. npm install 이 만지는 package-lock,
+# chmod 로 생긴 파일 모드 등 부수 변경은 매 배포마다 origin 기준으로 정리한다.
+git fetch origin "$BRANCH"
+git reset --hard "origin/$BRANCH"
 
 cd "$REPO/app"
 echo "[deploy] 2/5 npm install..."
